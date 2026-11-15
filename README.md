@@ -27,4 +27,4 @@ Paper trading only - educational, not financial advice. No real orders, ever.
 
 ---
 
-Built by **Pruthvi Garlapati** - Senior GCP DevOps Engineer at UKG. More work, including [Sach](https://github.com/pruthvig1998/sach-check) and [QuantPilot](https://github.com/pruthvig1998/QuantPilot): [github.com/pruthvig1998](https://github.com/pruthvig1998) - [LinkedIn](https://www.linkedin.com/in/pruthvi-garlapati/)
+Built by **Pruthvi Garlapati** - Senior GCP DevOps Engineer at UKG. More work, including [Sach](https://github.com/pruthvig1998/sach-check) and [QuantPilot](https://github.com/pruthvig1998/QuantPilot): [github.com/pruthvig1998](https://github.com/pruthvig1998) - [LinkedIn](https://www.linkedin.com/in/pruthvi-g/)
