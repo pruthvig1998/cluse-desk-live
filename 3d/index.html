@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cluse Investing Bot - Interactive 3D</title>
+<style>
+  html, body { margin: 0; padding: 0; height: 100%; overflow: hidden; background: #04070d; font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif; color: #e6edf3; }
+  #scene { position: fixed; inset: 0; }
+  #scene canvas { display: block; }
+  .panel { position: fixed; z-index: 2; background: rgba(8, 15, 24, 0.82); border: 1px solid rgba(0, 229, 255, 0.25); border-radius: 12px; padding: 14px 16px; backdrop-filter: blur(6px); }
+  #title { top: 16px; left: 16px; max-width: 340px; }
+  #title h1 { margin: 0 0 4px; font-size: 20px; color: #00e5ff; }
+  #title p { margin: 0; font-size: 13px; color: #9fb3c8; line-height: 1.45; }
+  #info { top: 16px; right: 16px; width: 300px; }
+  #info h2 { margin: 0 0 6px; font-size: 17px; color: #ffd479; }
+  #info p { margin: 0 0 8px; font-size: 13px; color: #c8d6e5; line-height: 1.5; }
+  #info a { color: #00e5ff; text-decoration: none; font-size: 13px; }
+  #info a:hover { text-decoration: underline; }
+  #hint { bottom: 16px; left: 16px; font-size: 13px; color: #9fb3c8; }
+  #hint b { color: #e6edf3; }
+  #spinBtn { bottom: 16px; right: 16px; cursor: pointer; font-size: 13px; color: #e6edf3; }
+  #spinBtn:hover { border-color: rgba(0, 229, 255, 0.6); }
+  #nogl { display: none; position: fixed; inset: 0; z-index: 3; align-items: center; justify-content: center; text-align: center; padding: 24px; font-size: 15px; }
+  #footer { position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); z-index: 1; font-size: 12px; color: #6b7f95; white-space: nowrap; }
+  @media (max-width: 700px) {
+    #info { top: auto; bottom: 64px; right: 12px; left: 12px; width: auto; }
+    #title { max-width: calc(100vw - 32px); }
+    #footer { display: none; }
+  }
+</style>
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+} }
+</script>
+</head>
+<body>
+<div id="scene"></div>
+<div class="panel" id="title">
+  <h1>Cluse Investing Bot</h1>
+  <p>Paper-only, multi-bot options research system for US markets. Drag to orbit, scroll to zoom, click a desk to see what it does.</p>
+</div>
+<div class="panel" id="info">
+  <h2 id="infoTitle">The Cluse Book</h2>
+  <p id="infoText">One virtual paper book. Every sleeve reports here, and no code path can place a real order.</p>
+  <a id="infoLink" href="https://github.com/pruthvig1998/cluse-investing-bot/tree/main/paper-desk">paper-desk/ on GitHub</a>
+  <p style="margin-top:10px; color:#6b7f95;">Also in the fleet: the Q&amp;A bot, Cluse Lab, and the command floor.</p>
+</div>
+<div class="panel" id="hint"><b>Drag</b> to orbit &nbsp; <b>Scroll</b> to zoom &nbsp; <b>Click</b> a desk</div>
+<div class="panel" id="spinBtn">Pause spin</div>
+<div id="footer">Paper trading only - educational, not financial advice. No real orders, ever.</div>
+<div id="nogl">This page needs WebGL to show the 3D diagram. Please try a browser with WebGL enabled.</div>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+const params = new URLSearchParams(location.search);
+const frozenAngle = params.has('angle') ? parseFloat(params.get('angle')) : null;
+
+let renderer;
+try {
+  renderer = new THREE.WebGLRenderer({ antialias: true });
+} catch (e) {
+  document.getElementById('nogl').style.display = 'flex';
+  throw e;
+}
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.setSize(innerWidth, innerHeight);
+document.getElementById('scene').appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x04070d);
+scene.fog = new THREE.Fog(0x04070d, 26, 60);
+
+const camera = new THREE.PerspectiveCamera(50, innerWidth / innerHeight, 0.1, 200);
+const RADIUS = 15;
+function placeCamera(deg) {
+  const rad = deg * Math.PI / 180;
+  camera.position.set(Math.sin(rad) * RADIUS, 9, Math.cos(rad) * RADIUS);
+}
+placeCamera(frozenAngle !== null ? frozenAngle : 35);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.08;
+controls.minDistance = 7;
+controls.maxDistance = 34;
+controls.maxPolarAngle = Math.PI * 0.49;
+controls.autoRotate = frozenAngle === null;
+controls.autoRotateSpeed = 0.9;
+
+scene.add(new THREE.AmbientLight(0x8899bb, 0.9));
+const key = new THREE.DirectionalLight(0xffffff, 1.4);
+key.position.set(6, 12, 8);
+scene.add(key);
+const teal = new THREE.PointLight(0x00e5ff, 60, 30);
+teal.position.set(0, 3, 0);
+scene.add(teal);
+
+function seededRand(seed) {
+  let s = seed;
+  return function () { s = (s * 16807) % 2147483647; return (s - 1) / 2147483646; };
+}
+const starGeo = new THREE.BufferGeometry();
+const starPos = [];
+const sr = seededRand(42);
+for (let i = 0; i < 700; i++) {
+  starPos.push((sr() - 0.5) * 90, sr() * 30 - 4, (sr() - 0.5) * 90);
+}
+starGeo.setAttribute('position', new THREE.Float32BufferAttribute(starPos, 3));
+scene.add(new THREE.Points(starGeo, new THREE.PointsMaterial({ color: 0x557799, size: 0.12 })));
+
+function makeLabel(text, color) {
+  const c = document.createElement('canvas');
+  c.width = 512; c.height = 128;
+  const g = c.getContext('2d');
+  g.font = '600 52px Inter, system-ui, sans-serif';
+  g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.shadowColor = 'rgba(0,0,0,0.9)'; g.shadowBlur = 12;
+  g.fillStyle = color;
+  g.fillText(text, 256, 64);
+  const tex = new THREE.CanvasTexture(c);
+  const spr = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false }));
+  spr.scale.set(3.4, 0.85, 1);
+  return spr;
+}
+
+function makeChart(seed, w, h) {
+  const c = document.createElement('canvas');
+  c.width = 256; c.height = 160;
+  const g = c.getContext('2d');
+  const rnd = seededRand(seed);
+  let price = 80;
+  const bw = 12, gap = 8;
+  for (let i = 0; i < 12; i++) {
+    const open = price;
+    const close = open + (rnd() - 0.45) * 22;
+    const high = Math.max(open, close) + rnd() * 8;
+    const low = Math.min(open, close) - rnd() * 8;
+    const x = 12 + i * (bw + gap);
+    const y = v => 150 - ((v - 40) / 90) * 140;
+    const up = close >= open;
+    g.strokeStyle = up ? '#19ff8c' : '#ff3b5c';
+    g.lineWidth = 2;
+    g.beginPath(); g.moveTo(x + bw / 2, y(high)); g.lineTo(x + bw / 2, y(low)); g.stroke();
+    g.fillStyle = up ? '#19ff8c' : '#ff3b5c';
+    g.fillRect(x, y(Math.max(open, close)), bw, Math.max(2, Math.abs(y(open) - y(close))));
+    price = close;
+  }
+  const tex = new THREE.CanvasTexture(c);
+  const m = new THREE.Mesh(
+    new THREE.PlaneGeometry(w, h),
+    new THREE.MeshBasicMaterial({ map: tex, transparent: true, side: THREE.DoubleSide, opacity: 0.95 })
+  );
+  return m;
+}
+
+const nodes = [];
+const pickables = [];
+const info = {
+  book: ['The Cluse Book', 'One virtual paper book. Every sleeve reports here, and no code path can place a real order.', 'https://github.com/pruthvig1998/cluse-investing-bot/tree/main/paper-desk', 'paper-desk/ on GitHub'],
+  briefing: ['Morning Briefing', 'Pre-market regime read (SPY, QQQ, IWM, VIX) plus a 12-name liquid options watchlist with EMA stack, RSI, relative volume and supply/demand zones.', 'https://github.com/pruthvig1998/cluse-investing-bot/tree/main/briefing', 'briefing/ on GitHub'],
+  scanner: ['Nasdaq-100 Scanner', '100+ names bucketed into breakout, momentum, oversold-bounce, breakdown and elevated-volume, with an insider Form 4 run-up/dump flag from SEC EDGAR.', 'https://github.com/pruthvig1998/cluse-investing-bot/tree/main/scanner', 'scanner/ on GitHub'],
+  signal: ['Signal Sleeve', 'Intraday momentum signals with a 7-point conviction score, symmetric calls and puts, runners that bank half at target and trail the rest.', 'https://github.com/pruthvig1998/cluse-investing-bot/tree/main/paper-desk', 'paper-desk/ on GitHub'],
+  earnings: ['Earnings Sleeve', 'A homework screen decides TRADE, WATCH or SKIP. Trades are a single call or put inside a $300 cap, with a drift-aware exit.', 'https://github.com/pruthvig1998/cluse-investing-bot/tree/main/paper-desk', 'paper-desk/ on GitHub'],
+  news: ['News Radar', 'Headline radar over a curated X watchlist. Alerts only, no trades from headlines alone.', 'https://github.com/pruthvig1998/cluse-investing-bot/tree/main/paper-desk', 'paper-desk/ on GitHub'],
+  exit: ['Exit Watcher', 'Real-time exit daemon: signal stops and targets, gain-lock floors, and the earnings drift watcher.', 'https://github.com/pruthvig1998/cluse-investing-bot/tree/main/paper-desk', 'paper-desk/exit_watch.py on GitHub'],
+  iron: ['IronGrid Publisher', 'Publishes every trade the book makes (entries, partial exits, exits, wins and losses) to the public paper-trading channel, with a daily recap.', 'https://github.com/pruthvig1998/cluse-investing-bot/tree/main/paper-desk', 'paper-desk/showcase on GitHub']
+};
+
+function addDesk(node, angleDeg, dist, color) {
+  const rad = angleDeg * Math.PI / 180;
+  const x = Math.sin(rad) * dist, z = Math.cos(rad) * dist;
+  const group = new THREE.Group();
+  group.position.set(x, 0, z);
+  const gold = color === 'gold';
+  const deskMat = new THREE.MeshStandardMaterial({ color: gold ? 0x8a6a1f : 0x10233a, metalness: 0.6, roughness: 0.35 });
+  const desk = new THREE.Mesh(new THREE.CylinderGeometry(1.15, 1.3, 0.4, 32), deskMat);
+  desk.position.y = 0.2;
+  group.add(desk);
+  const ring = new THREE.Mesh(new THREE.TorusGeometry(1.22, 0.045, 12, 48), new THREE.MeshBasicMaterial({ color: gold ? 0xffd479 : 0x00e5ff }));
+  ring.rotation.x = Math.PI / 2;
+  ring.position.y = 0.42;
+  group.add(ring);
+  const bodyMat = new THREE.MeshStandardMaterial({ color: 0x2fa8c8, metalness: 0.5, roughness: 0.4 });
+  const body = new THREE.Mesh(new THREE.CylinderGeometry(0.34, 0.42, 0.7, 20), bodyMat);
+  body.position.y = 0.95;
+  group.add(body);
+  const head = new THREE.Mesh(new THREE.SphereGeometry(0.42, 24, 18), bodyMat);
+  head.position.y = 1.65;
+  group.add(head);
+  const eyeMat = new THREE.MeshBasicMaterial({ color: 0x04121c });
+  const eyeGeo = new THREE.SphereGeometry(0.07, 10, 8);
+  const e1 = new THREE.Mesh(eyeGeo, eyeMat); e1.position.set(-0.15, 1.68, 0.38);
+  const e2 = new THREE.Mesh(eyeGeo, eyeMat); e2.position.set(0.15, 1.68, 0.38);
+  group.add(e1, e2);
+  const ant = new THREE.Mesh(new THREE.SphereGeometry(0.08, 10, 8), new THREE.MeshBasicMaterial({ color: 0x00e5ff }));
+  ant.position.y = 2.18;
+  group.add(ant);
+  const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.2, 6), bodyMat);
+  stem.position.y = 2.05;
+  group.add(stem);
+  const chart = makeChart(node.seed, 2.1, 1.3);
+  chart.position.set(0, 2.9, 0);
+  chart.rotation.y = -rad + Math.PI;
+  group.add(chart);
+  const label = makeLabel(node.label, gold ? '#ffd479' : '#e6edf3');
+  label.position.y = 3.8;
+  group.add(label);
+  group.userData.nodeId = node.id;
+  scene.add(group);
+  nodes.push({ group, id: node.id });
+  group.traverse(o => { if (o.isMesh) { o.userData.nodeId = node.id; pickables.push(o); } });
+  return group;
+}
+
+const bookGroup = new THREE.Group();
+const book = new THREE.Mesh(
+  new THREE.BoxGeometry(3.6, 0.4, 2.5),
+  new THREE.MeshStandardMaterial({ color: 0x0e2a3d, metalness: 0.5, roughness: 0.3, emissive: 0x00e5ff, emissiveIntensity: 0.35 })
+);
+book.position.y = 0.55;
+bookGroup.add(book);
+const bookLabel = makeLabel('CLUSE BOOK', '#00e5ff');
+bookLabel.position.y = 2.1;
+bookGroup.add(bookLabel);
+bookGroup.userData.nodeId = 'book';
+scene.add(bookGroup);
+bookGroup.traverse(o => { if (o.isMesh) { o.userData.nodeId = 'book'; pickables.push(o); } });
+
+const desks = [
+  { id: 'briefing', label: 'BRIEFING', seed: 11 },
+  { id: 'scanner', label: 'SCANNER', seed: 23 },
+  { id: 'signal', label: 'SIGNAL', seed: 37 },
+  { id: 'earnings', label: 'EARNINGS', seed: 51 },
+  { id: 'news', label: 'NEWS', seed: 67 },
+  { id: 'exit', label: 'EXIT WATCH', seed: 83 }
+];
+desks.forEach((d, i) => addDesk(d, i * 60, 6.4, 'teal'));
+
+const podium = new THREE.Group();
+podium.position.set(0, 0, -8.6);
+const pod = new THREE.Mesh(new THREE.BoxGeometry(1.7, 1.3, 1.1), new THREE.MeshStandardMaterial({ color: 0xc9962e, metalness: 0.8, roughness: 0.25 }));
+pod.position.y = 0.65;
+podium.add(pod);
+const podLabel = makeLabel('IRONGRID', '#ffd479');
+podLabel.position.y = 2.4;
+podium.add(podLabel);
+const podChart = makeChart(97, 2.1, 1.3);
+podChart.position.set(0, 3.3, 0);
+podium.add(podChart);
+podium.userData.nodeId = 'iron';
+scene.add(podium);
+podium.traverse(o => { if (o.isMesh) { o.userData.nodeId = 'iron'; pickables.push(o); } });
+
+const lineMat = new THREE.LineBasicMaterial({ color: 0x00e5ff, transparent: true, opacity: 0.55 });
+const targets = [...nodes.map(n => n.group.position), podium.position];
+const pulses = [];
+targets.forEach(t => {
+  const geo = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0, 0.7, 0), new THREE.Vector3(t.x, 0.7, t.z)]);
+  scene.add(new THREE.Line(geo, lineMat));
+  const p = new THREE.Mesh(new THREE.SphereGeometry(0.09, 10, 8), new THREE.MeshBasicMaterial({ color: 0x19ff8c }));
+  scene.add(p);
+  pulses.push({ mesh: p, from: new THREE.Vector3(0, 0.7, 0), to: new THREE.Vector3(t.x, 0.7, t.z), t: Math.random() });
+});
+
+const ray = new THREE.Raycaster();
+const mouse = new THREE.Vector2();
+let selected = null;
+function setInfo(id) {
+  const d = info[id] || info.book;
+  document.getElementById('infoTitle').textContent = d[0];
+  document.getElementById('infoText').textContent = d[1];
+  const link = document.getElementById('infoLink');
+  link.href = d[2];
+  link.textContent = d[3];
+}
+renderer.domElement.addEventListener('click', ev => {
+  mouse.set((ev.clientX / innerWidth) * 2 - 1, -(ev.clientY / innerHeight) * 2 + 1);
+  ray.setFromCamera(mouse, camera);
+  const hit = ray.intersectObjects(pickables, false)[0];
+  if (hit) {
+    const id = hit.object.userData.nodeId;
+    if (selected && selected.userData) selected.scale.setScalar(1);
+    const g = nodes.find(n => n.id === id);
+    if (g) { g.group.scale.setScalar(1.12); selected = g.group; }
+    if (id === 'book') { bookGroup.scale.setScalar(1.12); selected = bookGroup; }
+    if (id === 'iron') { podium.scale.setScalar(1.12); selected = podium; }
+    setInfo(id);
+  }
+});
+const spinBtn = document.getElementById('spinBtn');
+spinBtn.addEventListener('click', () => {
+  controls.autoRotate = !controls.autoRotate;
+  spinBtn.textContent = controls.autoRotate ? 'Pause spin' : 'Resume spin';
+});
+controls.addEventListener('start', () => { if (frozenAngle === null && controls.autoRotate) { controls.autoRotate = false; spinBtn.textContent = 'Resume spin'; } });
+
+addEventListener('resize', () => {
+  camera.aspect = innerWidth / innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+});
+
+if (frozenAngle !== null) {
+  renderer.render(scene, camera);
+} else {
+  const clock = new THREE.Clock();
+  (function animate() {
+    requestAnimationFrame(animate);
+    const dt = clock.getDelta();
+    pulses.forEach(p => {
+      p.t += dt * 0.25;
+      if (p.t > 1) p.t = 0;
+      p.mesh.position.lerpVectors(p.from, p.to, p.t);
+    });
+    controls.update();
+    renderer.render(scene, camera);
+  })();
+}
+</script>
+</body>
+</html>

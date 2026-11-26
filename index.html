@@ -1,0 +1,934 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cluse Desk Live</title>
+<style>
+:root {
+  color-scheme: light;
+  --bg-0: #ffffff; --bg-1: #f5f8fc; --glass: #ffffff; --glass-2: #f7fafd;
+  --edge: #e1e7ef; --edge-hi: #b9c7d8;
+  --text-1: #0d1b2e; --text-2: #3e4f66; --text-3: #75859a;
+  --accent: #0b7a8f; --accent-2: #0f9d58; --accent-glow: rgba(11, 122, 143, 0.18); --amber: #1d4ed8;
+  --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a;
+  --good: #0ca30c; --warn: #fab219; --serious: #ec835a; --crit: #d03b3b;
+  --grid: rgba(30, 55, 90, 0.09); --surface-gap: #ffffff;
+  --c1: #2a78d6; --c2: #eb6834; --c3: #1baf7a; --c4: #eda100;
+  --up: #0f9d58; --down: #d92d48; --shadow: 0 1px 2px rgba(16, 30, 54, 0.06), 0 8px 24px rgba(16, 30, 54, 0.06);
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg-0: #030507; --bg-1: #06090d; --glass: #0a0f15; --glass-2: #0d141c;
+  --edge: #1a2532; --edge-hi: #2c4156;
+  --text-1: #e6edf3; --text-2: #9fb0c3; --text-3: #5f7286;
+  --accent: #00e5ff; --accent-2: #19ff8c; --accent-glow: rgba(0, 229, 255, 0.35); --amber: #ffb000;
+  --s1: #3987e5; --s2: #d95926; --s3: #199e70;
+  --grid: rgba(120, 150, 180, 0.12); --surface-gap: #0a0f15;
+  --c1: #3987e5; --c2: #d95926; --c3: #199e70; --c4: #c98500;
+  --up: #19ff8c; --down: #ff3b5c; --shadow: none;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; }
+body {
+  background: linear-gradient(180deg, var(--bg-0), var(--bg-1)); color: var(--text-1);
+  font: 14px/1.5 "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  min-height: 100vh;
+}
+.num, .mono { font-variant-numeric: tabular-nums; font-family: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace; }
+.wrap { max-width: 1440px; margin: 0 auto; padding: 20px 24px 40px; }
+header { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-bottom: 18px; }
+.logo { width: 34px; height: 34px; border-radius: 6px; display: grid; place-items: center;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2)); box-shadow: 0 0 22px var(--accent-glow); }
+.logo svg { width: 20px; height: 20px; }
+h1 { font-size: 20px; margin: 0; letter-spacing: 0.2px; }
+h1 small { color: var(--text-3); font-weight: 500; font-size: 13px; margin-left: 6px; }
+.spacer { flex: 1; }
+.pill { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 4px; font-size: 12px;
+  background: var(--glass); border: 1px solid var(--edge); color: var(--text-2); }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--text-3); }
+.dot.live { background: var(--accent-2); box-shadow: 0 0 10px var(--accent-2); animation: pulse 2s infinite; }
+@keyframes pulse { 50% { opacity: 0.45; } }
+.demo { background: rgba(250, 178, 25, 0.14); border-color: rgba(250, 178, 25, 0.5); color: var(--warn); font-weight: 600; }
+.grid { display: grid; gap: 16px; grid-template-columns: repeat(12, 1fr); }
+.card { grid-column: span 12; background: var(--glass); border: 1px solid var(--edge); border-radius: 10px;
+  padding: 16px 18px; position: relative; overflow: hidden; box-shadow: var(--shadow); }
+.card::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--edge-hi), transparent); }
+.card h2 { font-size: 11.5px; text-transform: uppercase; letter-spacing: 1.4px; color: var(--amber); margin: 0 0 12px; font-weight: 700;
+  display: flex; align-items: center; gap: 8px; }
+.card h2 .hint { text-transform: none; letter-spacing: 0; font-weight: 400; margin-left: auto; color: var(--text-3); }
+.c3 { grid-column: span 3; } .c4 { grid-column: span 4; } .c5 { grid-column: span 5; } .c6 { grid-column: span 6; }
+.c7 { grid-column: span 7; } .c8 { grid-column: span 8; }
+@media (max-width: 1100px) { .c3 { grid-column: span 6; } .c4, .c5, .c6, .c7, .c8 { grid-column: span 12; } }
+@media (max-width: 640px) { .wrap { padding: 16px; } .c3 { grid-column: span 12; } }
+.kpi .v { font-size: 28px; font-weight: 700; margin-top: 2px; }
+.kpi .sub { color: var(--text-2); font-size: 12.5px; margin-top: 4px; }
+#k-risk { font-size: 19px; } #k-risk .status { white-space: normal; }
+.up { color: var(--up); } .down { color: var(--down); }
+:root[data-theme="dark"] .up { text-shadow: 0 0 12px rgba(25, 255, 140, 0.25); } :root[data-theme="dark"] .down { text-shadow: 0 0 12px rgba(255, 59, 92, 0.25); }
+.flash-up { animation: flashU 1.2s ease-out; } .flash-down { animation: flashD 1.2s ease-out; }
+@keyframes flashU { 0% { background: rgba(15, 157, 88, 0.22); } 100% { background: transparent; } }
+@keyframes flashD { 0% { background: rgba(217, 45, 72, 0.2); } 100% { background: transparent; } }
+.ticker { overflow: hidden; border: 1px solid var(--edge); border-radius: 6px; background: var(--glass); margin-bottom: 14px; white-space: nowrap;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 4%, #000 96%, transparent); mask-image: linear-gradient(90deg, transparent, #000 4%, #000 96%, transparent); }
+.ticker .track { display: inline-flex; gap: 34px; padding: 8px 0; animation: scroll 40s linear infinite; }
+.ticker:hover .track { animation-play-state: paused; }
+.ticker .it { display: inline-flex; gap: 8px; align-items: baseline; font-size: 13px; }
+.ticker .it b { color: var(--text-1); } .ticker .it .m { color: var(--text-3); }
+@keyframes scroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+.typing { display: inline-flex; gap: 4px; padding: 10px 12px; }
+.typing i { width: 6px; height: 6px; border-radius: 50%; background: var(--text-3); animation: blink 1s infinite; }
+.typing i:nth-child(2) { animation-delay: 0.15s; } .typing i:nth-child(3) { animation-delay: 0.3s; }
+@keyframes blink { 0%, 80%, 100% { opacity: 0.25; } 40% { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+.status { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; white-space: nowrap; }
+.status svg { width: 15px; height: 15px; }
+/* pipeline */
+.flow { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 0; align-items: stretch; }
+@media (max-width: 1100px) { .flow { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; } .link { display: none; } }
+.stage { position: relative; padding: 12px; border-radius: 6px; background: var(--glass-2); border: 1px solid var(--edge);
+  margin: 0 14px; min-height: 120px; }
+.stage .t { font-size: 12px; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.9px; padding-right: 26px; }
+.stage .n { font-size: 26px; font-weight: 700; margin: 4px 0 2px; }
+.stage .d { font-size: 12px; color: var(--text-2); }
+.stage .ic { position: absolute; right: 10px; top: 10px; width: 22px; height: 22px; opacity: 0.8; color: var(--accent); }
+.link { position: absolute; top: 50%; right: -16px; width: 18px; height: 2px; background: var(--edge-hi); overflow: visible; }
+.link::after { content: ""; position: absolute; top: -3px; left: 0; width: 8px; height: 8px; border-radius: 50%;
+  background: var(--accent); box-shadow: 0 0 10px var(--accent); animation: flow 1.8s linear infinite; }
+@keyframes flow { from { left: -2px; opacity: 0; } 30% { opacity: 1; } to { left: 14px; opacity: 0; } }
+/* tables and lists */
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th { text-align: left; color: var(--text-3); font-weight: 500; font-size: 11.5px; text-transform: uppercase;
+  letter-spacing: 0.7px; padding: 0 8px 8px; border-bottom: 1px solid var(--edge); }
+td { padding: 8px; border-bottom: 1px solid var(--grid); color: var(--text-1); }
+td.r, th.r { text-align: right; }
+tr:last-child td { border-bottom: 0; }
+.tag { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: 11.5px; border: 1px solid var(--edge);
+  color: var(--text-2); background: var(--glass); }
+.tag.call { color: var(--accent-2); border-color: rgba(61, 220, 132, 0.35); }
+.tag.put { color: #ff8b8b; border-color: rgba(255, 107, 107, 0.35); }
+.feed { list-style: none; margin: 0; padding: 0; max-height: 360px; overflow: auto; }
+.feed li { display: grid; grid-template-columns: 74px 62px 1fr; gap: 8px; padding: 7px 4px; border-bottom: 1px solid var(--grid); font-size: 13px; }
+.feed li .tm { color: var(--text-3); }
+.svc { display: flex; gap: 10px; flex-wrap: wrap; }
+.svc .s { flex: 1 1 160px; padding: 10px 12px; border-radius: 6px; background: var(--glass-2); border: 1px solid var(--edge); }
+.svc .s .nm { font-weight: 600; }
+.svc .s .st { font-size: 12px; color: var(--text-2); margin-top: 2px; }
+.bar { height: 8px; border-radius: 4px; background: var(--grid); overflow: hidden; }
+.bar > i { display: block; height: 100%; border-radius: 4px; background: linear-gradient(90deg, var(--accent), var(--accent-2)); }
+.muted { color: var(--text-3); }
+.empty { color: var(--text-3); padding: 14px 0; font-size: 13px; }
+/* charts */
+.chart { width: 100%; height: 220px; position: relative; }
+.chart svg { width: 100%; height: 100%; overflow: visible; }
+.tip { position: absolute; pointer-events: none; padding: 7px 10px; border-radius: 10px; font-size: 12px;
+  background: #0d1b2e; border: 1px solid #0d1b2e; color: #ffffff; transform: translate(-50%, -110%);
+  white-space: nowrap; opacity: 0; transition: opacity 0.12s; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35); }
+.tabs { display: inline-flex; gap: 4px; padding: 4px; border-radius: 6px; background: var(--glass); border: 1px solid var(--edge); margin-bottom: 16px; }
+.tabs button { all: unset; cursor: pointer; padding: 7px 14px; border-radius: 4px; text-transform: uppercase; letter-spacing: 1px; font-size: 12px; color: var(--text-2); font-weight: 600; font-size: 13px; }
+.tabs button[aria-selected="true"] { background: linear-gradient(135deg, rgba(79, 209, 255, 0.22), rgba(61, 220, 132, 0.18)); color: var(--text-1); box-shadow: 0 0 0 1px var(--edge-hi) inset; }
+.tabs button:focus-visible, .rooms button:focus-visible { outline: 2px solid var(--accent); }
+.rooms { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+.rooms button { all: unset; cursor: pointer; padding: 5px 11px; border-radius: 999px; font-size: 12.5px; border: 1px solid var(--edge); color: var(--text-2); background: var(--glass); }
+.rooms button[aria-pressed="true"] { border-color: var(--edge-hi); color: var(--text-1); background: var(--glass-2); }
+.chat { display: flex; flex-direction: column; gap: 10px; max-height: 560px; overflow: auto; padding-right: 4px; }
+.msg { display: grid; grid-template-columns: 38px 1fr; gap: 10px; align-items: start; animation: rise 0.35s ease both; }
+@keyframes rise { from { opacity: 0; transform: translateY(6px); } }
+.av { width: 38px; height: 38px; border-radius: 6px; display: grid; place-items: center; font-weight: 800; font-size: 12px; color: #06101f; box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25); }
+.bubble { background: var(--glass-2); border: 1px solid var(--edge); border-radius: 2px 8px 8px 8px; padding: 9px 12px; }
+.bubble .who { font-weight: 700; font-size: 12.5px; display: flex; gap: 8px; align-items: center; }
+.bubble .txt { color: var(--text-2); font-size: 13px; margin-top: 2px; }
+.stance { font-size: 11px; font-weight: 600; padding: 0 7px; border-radius: 999px; border: 1px solid var(--edge); color: var(--text-3); }
+.stance.for { color: var(--accent-2); border-color: rgba(61, 220, 132, 0.4); } .stance.against { color: #ff8b8b; border-color: rgba(255, 107, 107, 0.4); }
+.msg.chief .bubble { border-color: var(--edge-hi); background: linear-gradient(135deg, rgba(79, 209, 255, 0.12), rgba(61, 220, 132, 0.08)); }
+.desks { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 12px; }
+.desk { padding: 14px; border-radius: 6px; background: var(--glass-2); border: 1px solid var(--edge); }
+.desk .nm { font-weight: 700; } .desk .w { color: var(--text-3); font-size: 12px; min-height: 32px; }
+.desk .big { font-size: 22px; font-weight: 700; margin-top: 6px; } .desk .st { color: var(--text-2); font-size: 12px; }
+.desk svg { width: 100%; height: 64px; margin-top: 8px; }
+.flowmap svg { width: 100%; height: auto; display: block; }
+.flowmap { background: radial-gradient(900px 300px at 50% 60%, var(--accent-glow), transparent 70%), var(--glass); }
+.fm-label { font-size: 13px; font-weight: 800; fill: var(--text-1); }
+.fm-count { font-size: 12px; fill: var(--text-3); font-family: "JetBrains Mono", ui-monospace, Menlo, monospace; }
+.fm-halo { fill: var(--glass); stroke: var(--edge-hi); stroke-width: 1.5; }
+.bumper { transform-box: fill-box; transform-origin: center; } .bumper.bump { animation: bump 0.5s ease; }
+@keyframes bump { 30% { transform: scale(1.14); } }
+.fm-wire { fill: none; stroke: url(#wireGrad); stroke-width: 2.6; opacity: 0.55; }
+.fm-wire.flow { stroke-dasharray: 2 10; stroke-linecap: round; animation: dash 1.2s linear infinite; opacity: 0.9; stroke-width: 3; }
+.fm-feed rect { fill: var(--glass-2); stroke: var(--edge-hi); } .fm-feed text { font-size: 12.5px; font-weight: 700; fill: var(--text-1); }
+.fm-feed .sub { font-size: 11px; font-weight: 500; fill: var(--text-3); }
+.fm-bubble rect { fill: var(--text-1); } .fm-bubble text { fill: var(--bg-0); font-size: 12px; font-weight: 700; }
+.fm-bubble { animation: pop 0.25s ease both; transform-box: fill-box; transform-origin: bottom center; }
+@keyframes pop { from { opacity: 0; transform: scale(0.6) translateY(6px); } }
+.fm-pkt text { font-size: 11.5px; font-weight: 800; fill: #fff; font-family: "JetBrains Mono", ui-monospace, Menlo, monospace; }
+.fs-bar { display: none; }
+.flowmap:fullscreen { padding: 28px 36px; display: flex; flex-direction: column; justify-content: center; background: radial-gradient(1200px 500px at 50% 60%, var(--accent-glow), transparent 70%), var(--bg-0); }
+.flowmap:fullscreen h2 .hint { display: none; }
+.flowmap:fullscreen .fs-bar { display: flex; gap: 28px; justify-content: center; margin: 0 0 10px; font-size: 18px; }
+.flowmap:fullscreen .fs-bar b { font-size: 26px; display: block; }
+.flowmap:fullscreen #flowmap svg { max-height: 82vh; }
+.replay .steps { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; min-height: 120px; }
+.replay .step { display: grid; grid-template-columns: 46px 74px 1fr; gap: 10px; align-items: center; animation: rise 0.4s ease both; }
+.replay .step .tm { color: var(--text-3); font-size: 12px; font-family: "JetBrains Mono", ui-monospace, Menlo, monospace; }
+.replay .step .tx { background: var(--glass-2); border: 1px solid var(--edge); border-radius: 10px; padding: 8px 12px; }
+.replay .step .tx b { display: block; font-size: 12px; } .replay .step .tx span { color: var(--text-2); font-size: 13px; }
+.replay .step.exit .tx { border-color: var(--edge-hi); } .replay .bar { height: 4px; border-radius: 2px; background: var(--grid); margin-top: 10px; overflow: hidden; }
+.replay .bar i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--accent), var(--accent-2)); transition: width 0.5s; }
+.replay .ctrls { display: flex; gap: 8px; align-items: center; margin-top: 10px; }
+.bigbtn { cursor: pointer; font: inherit; font-weight: 700; padding: 7px 14px; border-radius: 8px; border: 1px solid var(--accent); color: var(--accent); background: var(--glass); }
+.bigbtn:hover { background: var(--accent-glow); }
+.roster { grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)) !important; }
+.bot { grid-template-columns: 84px 1fr !important; padding: 14px !important; }
+.bot .face { width: 84px; height: 84px; }
+.face .zz { font-size: 11px; font-weight: 800; fill: var(--text-3); animation: zz 2.4s ease-in-out infinite; }
+@keyframes zz { 0% { opacity: 0; transform: translate(0, 4px); } 50% { opacity: 1; } 100% { opacity: 0; transform: translate(4px, -6px); } }
+.face .sweat { animation: sweat 1.8s ease-in infinite; } @keyframes sweat { 0% { opacity: 0; transform: translateY(-3px); } 40% { opacity: 1; } 100% { opacity: 0; transform: translateY(5px); } }
+.flowmap .node rect { fill: var(--glass-2); stroke: var(--edge-hi); stroke-width: 1.2; }
+.flowmap .node.hot rect { stroke: var(--accent); animation: glow 2.4s ease-in-out infinite; }
+@keyframes glow { 50% { stroke-width: 2.6; } }
+.flowmap .node .nm { font-size: 13px; font-weight: 700; fill: var(--text-1); }
+.flowmap .node .ct { font-size: 12px; fill: var(--text-3); font-family: "JetBrains Mono", ui-monospace, Menlo, monospace; }
+.flowmap .wire { fill: none; stroke: var(--edge-hi); stroke-width: 1.4; stroke-dasharray: 4 6; animation: dash 1.6s linear infinite; }
+@keyframes dash { to { stroke-dashoffset: -20; } }
+.flowmap .pk text { font-size: 11px; font-weight: 700; fill: #fff; font-family: "JetBrains Mono", ui-monospace, Menlo, monospace; }
+.roster { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 12px; }
+.bot { display: grid; grid-template-columns: 56px 1fr; gap: 10px; align-items: center; padding: 12px; border-radius: 10px;
+  background: var(--glass-2); border: 1px solid var(--edge); transition: transform 0.2s, border-color 0.2s; }
+.bot:hover { transform: translateY(-2px); border-color: var(--edge-hi); }
+.bot .bn { font-weight: 700; } .bot .bj { font-size: 11.5px; color: var(--text-3); }
+.bot .bd { font-size: 12.5px; color: var(--text-2); margin-top: 3px; line-height: 1.35; }
+.bot.busy { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
+.face { width: 56px; height: 56px; overflow: visible; }
+.face .eye { transform-box: fill-box; transform-origin: center; animation: blinkEye 4.6s infinite; }
+.face .eye.r { animation-delay: 0.04s; }
+@keyframes blinkEye { 0%, 94%, 100% { transform: scaleY(1); } 96% { transform: scaleY(0.1); } }
+.face .bulb { animation: bulb 1.4s ease-in-out infinite; }
+.face.idle .bulb { animation: none; opacity: 0.35; }
+@keyframes bulb { 50% { opacity: 0.25; } }
+.face .pupil { animation: look 7s ease-in-out infinite; }
+@keyframes look { 0%, 40%, 100% { transform: translateX(0); } 50%, 65% { transform: translateX(1.6px); } 75%, 90% { transform: translateX(-1.6px); } }
+.av.robo { background: none !important; box-shadow: none; width: 40px; height: 40px; }
+.av.robo .face { width: 40px; height: 40px; }
+.toasts { position: fixed; right: 18px; top: 18px; display: flex; flex-direction: column; gap: 8px; z-index: 50; max-width: 360px; }
+.toast { background: var(--glass); border: 1px solid var(--edge-hi); border-left: 4px solid var(--accent); border-radius: 10px; padding: 10px 14px;
+  box-shadow: 0 12px 32px rgba(16, 30, 54, 0.18); animation: slidein 0.35s ease both; font-size: 13px; }
+.toast.good { border-left-color: var(--up); } .toast.bad { border-left-color: var(--down); } .toast.crit { border-left-color: var(--crit); }
+.toast b { display: block; margin-bottom: 2px; }
+@keyframes slidein { from { opacity: 0; transform: translateX(20px); } }
+.ctl { cursor: pointer; font: inherit; } .ctl:hover { border-color: var(--edge-hi); color: var(--text-1); }
+.ctl[aria-pressed="true"] { color: var(--accent); border-color: var(--accent); } .ctl:focus-visible { outline: 2px solid var(--accent); }
+.legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12.5px; color: var(--text-2); margin-bottom: 6px; }
+.legend i { display: inline-block; width: 14px; height: 3px; border-radius: 2px; vertical-align: middle; margin-right: 6px; }
+footer { color: var(--text-3); font-size: 12px; margin-top: 22px; text-align: center; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+</style>
+</head>
+<body>
+<div class="toasts" id="toasts" role="status" aria-live="polite"></div>
+<div class="wrap">
+  <p class="pill" style="display:block;text-align:center;margin:0 0 12px">Public view: a snapshot of the bot every 5 minutes in the session. Paper trading only - educational, not financial advice. No real orders, ever.</p>
+  <header>
+    <div class="logo" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="#06101f" stroke-width="2.4" stroke-linecap="round"><path d="M3 17l5-6 4 4 8-9"/></svg></div>
+    <h1>Cluse Desk <small>live</small></h1>
+    <span class="pill" id="demo" hidden>DEMO DATA</span>
+    <div class="spacer"></div>
+    <span class="pill"><span class="dot" id="mkt-dot"></span><span id="mkt">market</span></span>
+    <span class="pill mono" id="clock">-</span>
+    <span class="pill mono" id="deploy">-</span>
+    <span class="pill"><span class="dot live" id="live-dot"></span><span id="upd">connecting</span></span>
+    <button class="pill ctl" id="sound" aria-pressed="false" title="Chime on new trades, exits and rail trips">Sound off</button>
+    <button class="pill ctl" id="theme" title="Switch light / dark">Dark</button>
+  </header>
+
+  <div class="ticker" aria-label="Open positions and today's activity"><div class="track" id="ticker"></div></div>
+  <div class="tabs" role="tablist">
+    <button role="tab" id="tab-floor" aria-selected="true" aria-controls="view-floor">Desk floor</button>
+    <button role="tab" id="tab-over" aria-selected="false" aria-controls="view-over">Overview</button>
+  </div>
+  <div class="grid" id="view-floor" role="tabpanel">
+    <section class="card flowmap" id="flow-card"><h2>Live data flow <span class="hint">real tickers from today: feeds in, through the gates and the bots, to the book and out</span>
+      <button class="pill ctl" id="fullscreen" style="margin-left:10px">Full screen</button></h2>
+      <div class="fs-bar" id="fs-bar"></div>
+      <div id="flowmap"></div></section>
+    <section class="card"><h2>Meet the bots <span class="hint">what each one is doing right now (glowing = busy)</span></h2>
+      <div class="roster" id="roster"></div></section>
+    <section class="card replay" id="replay-card"><h2>Trade replay <span class="hint">pick a trade and watch its whole life, step by step</span></h2>
+      <div class="rooms" id="replay-list"></div>
+      <div class="ctrls"><button class="bigbtn" id="replay-play">Play</button><span class="muted" id="replay-sum"></span></div>
+      <div class="bar"><i id="replay-bar"></i></div>
+      <div class="steps" id="replay-steps"></div></section>
+    <section class="card c7"><h2>The bots talking it over <span class="hint">the debate behind each booked trade (shadow: the rules decide)</span></h2>
+      <div class="rooms" id="rooms"></div><div class="chat" id="chat"></div></section>
+    <section class="card c5"><h2>The desks <span class="hint">realized P&amp;L by desk, every trade, losses included</span></h2>
+      <div class="desks" id="desks"></div>
+      <h2 style="margin-top:16px">Right now</h2><div id="floor-now" class="muted"></div></section>
+  </div>
+  </div>
+  <div class="grid" id="view-over" role="tabpanel" hidden>
+    <section class="card c3 kpi"><h2>Equity, marked at the bid</h2><div class="v num" id="k-eq">-</div><div class="sub" id="k-eq-sub"></div></section>
+    <section class="card c3 kpi"><h2>Today</h2><div class="v num" id="k-day">-</div><div class="sub" id="k-day-sub"></div></section>
+    <section class="card c3 kpi"><h2>Cash and positions</h2><div class="v num" id="k-cash">-</div><div class="sub" id="k-cash-sub"></div></section>
+    <section class="card c3 kpi"><h2>Risk rails</h2><div class="v" id="k-risk">-</div><div class="sub" id="k-risk-sub"></div></section>
+
+    <section class="card"><h2>How a trade happens today <span class="hint">signal to booking to exit, counts since the open</span></h2>
+      <div class="flow" id="flow"></div></section>
+
+    <section class="card c8"><h2>Equity and trades <span class="hint">end of each session; dots = that day's closed trades, size = P&amp;L</span></h2><div class="chart" id="eq-chart"></div></section>
+    <section class="card c4"><h2>The bots</h2><div class="svc" id="svc"></div>
+      <h2 style="margin-top:16px">Debate and judge <span class="hint" id="veto"></span></h2><table id="judge"></table></section>
+
+    <section class="card c7"><h2>P&amp;L by desk over time <span class="hint">cumulative realized, every trade, losses included</span></h2>
+      <div class="legend" id="desk-legend"></div><div class="chart" id="desk-chart" style="height:250px"></div></section>
+    <section class="card c5"><h2>Win rate by entry hour <span class="hint">closed trades, ET</span></h2><div class="chart" id="hourwin-chart" style="height:274px"></div></section>
+    <section class="card c6"><h2>Why signals were refused today</h2><div class="chart" id="rule-chart" style="height:250px"></div></section>
+    <section class="card c6"><h2>Signals by hour today (ET)</h2><div class="chart" id="hour-chart" style="height:250px"></div></section>
+
+    <section class="card c7"><h2>Open positions <span class="hint">bid from the exit watcher, under 60 s old</span></h2><table id="pos"></table>
+      <h2 style="margin-top:16px">Closed today</h2><table id="closed"></table></section>
+    <section class="card c5"><h2>Live activity</h2><ul class="feed" id="feed"></ul></section>
+
+    <section class="card c7"><h2>Where the data comes from <span class="hint">age = last write of the file it feeds</span></h2><table id="feeds"></table></section>
+    <section class="card c5"><h2>Models answering</h2><table id="models"></table></section>
+
+    <section class="card c6"><h2>Cluse Lab strategies <span class="hint">paper notebook, never the book</span></h2><table id="lab"></table></section>
+    <section class="card c6"><h2>Coming up on the schedule</h2><table id="sched"></table></section>
+  </div>
+  <footer>Paper trading only - educational, not financial advice. No real orders, ever. Read-only view of the bot's own files.</footer>
+</div>
+
+<script>const STATE_URL = "https://raw.githubusercontent.com/pruthvig1998/cluse-desk-live/data/state.json";</script>
+<script>
+const $ = (id) => document.getElementById(id);
+const fmt$ = (v) => (v == null ? "-" : (v < 0 ? "-$" : "$") + Math.abs(v).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}));
+const fmtS = (v) => (v == null ? "-" : (v >= 0 ? "+" : "") + fmt$(v).replace("$-", "-$"));
+const pct = (v) => (v == null ? "-" : (v >= 0 ? "+" : "") + v.toFixed(1) + "%");
+const ago = (s) => s == null ? "no file" : s < 90 ? s + " s" : s < 5400 ? Math.round(s / 60) + " min" : s < 172800 ? Math.round(s / 3600) + " h" : Math.round(s / 86400) + " d";
+function el(tag, attrs, ...kids) {
+  const e = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs || {})) { if (k === "class") e.className = v; else if (k === "style") e.style.cssText = v; else e.setAttribute(k, v); }
+  for (const k of kids) e.append(k instanceof Node ? k : document.createTextNode(k == null ? "" : String(k)));
+  return e;
+}
+const ICON = {
+  good: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12l5 5 9-10"/></svg>',
+  warn: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 3l10 18H2z"/><path d="M12 10v5M12 18v.5"/></svg>',
+  crit: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M6 6l12 12M18 6L6 18"/></svg>',
+};
+function status(kind, text) {
+  const color = {good: "var(--good)", warn: "var(--warn)", serious: "var(--serious)", crit: "var(--crit)"}[kind];
+  const s = el("span", {class: "status", style: "color:" + color});
+  const i = document.createElement("span"); i.innerHTML = ICON[kind === "serious" ? "warn" : kind]; s.append(i.firstChild, text);
+  return s;
+}
+function table(id, head, rows, empty) {
+  const t = $(id); t.replaceChildren();
+  if (!rows.length) { t.append(el("tr", {}, el("td", {class: "empty"}, empty || "nothing yet"))); return; }
+  t.append(el("tr", {}, ...head.map(([h, r]) => el("th", {class: r ? "r" : ""}, h))));
+  for (const r of rows) t.append(el("tr", {}, ...r.map((c, i) => el("td", {class: head[i][1] ? "r num" : ""}, c))));
+}
+
+// ---------------- charts (single series in the accent; hover tooltip on every mark)
+function tipOf(box) { let t = box.querySelector(".tip"); if (!t) { t = el("div", {class: "tip"}); box.append(t); } return t; }
+function lineChart(box, pts, label, marks) {
+  box.querySelectorAll("svg,.empty").forEach(n => n.remove());
+  if (pts.length < 2) { box.append(el("div", {class: "empty"}, "no equity history yet")); return; }
+  const W = box.clientWidth || 600, H = box.clientHeight || 220, L = 56, R = 12, T = 12, B = 26;
+  const ys = pts.map(p => p.y), lo = Math.min(...ys), hi = Math.max(...ys), pad = (hi - lo) * 0.12 || 50;
+  const y0 = lo - pad, y1 = hi + pad;
+  const X = i => L + (W - L - R) * i / (pts.length - 1), Y = v => T + (H - T - B) * (1 - (v - y0) / (y1 - y0));
+  const ns = "http://www.w3.org/2000/svg", svg = document.createElementNS(ns, "svg");
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`); svg.setAttribute("role", "img"); svg.setAttribute("aria-label", label);
+  const mk = (n, a) => { const e = document.createElementNS(ns, n); for (const k in a) e.setAttribute(k, a[k]); svg.append(e); return e; };
+  const defs = mk("defs", {}); defs.innerHTML = '<linearGradient id="ga" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="var(--accent)" stop-opacity="0.32"/><stop offset="1" stop-color="var(--accent)" stop-opacity="0"/></linearGradient>';
+  for (let k = 0; k <= 3; k++) { const v = y0 + (y1 - y0) * k / 3, y = Y(v);
+    mk("line", {x1: L, x2: W - R, y1: y, y2: y, stroke: "var(--grid)"});
+    const t = mk("text", {x: L - 8, y: y + 4, "text-anchor": "end", fill: "var(--text-3)", "font-size": 11}); t.textContent = "$" + Math.round(v).toLocaleString(); }
+  const d = pts.map((p, i) => (i ? "L" : "M") + X(i).toFixed(1) + "," + Y(p.y).toFixed(1)).join("");
+  mk("path", {d: d + `L${X(pts.length - 1)},${H - B}L${L},${H - B}Z`, fill: "url(#ga)"});
+  mk("path", {d, fill: "none", stroke: "var(--accent)", "stroke-width": 2, "stroke-linejoin": "round"});
+  for (const i of [0, pts.length - 1]) { const t = mk("text", {x: X(i), y: H - 6, "text-anchor": i ? "end" : "start", fill: "var(--text-3)", "font-size": 11}); t.textContent = pts[i].x; }
+  if (marks) pts.forEach((p, i) => { const m = marks[p.x]; if (!m) return;          // the day's closed trades on the curve
+    mk("circle", {cx: X(i), cy: Y(p.y), r: (3.5 + Math.min(7, Math.abs(m.realized) / 25)).toFixed(1), fill: m.realized >= 0 ? "var(--up)" : "var(--down)",
+      stroke: "var(--surface-gap)", "stroke-width": 2, opacity: 0.9}); });
+  const cross = mk("line", {y1: T, y2: H - B, stroke: "var(--edge-hi)", opacity: 0});
+  const dot = mk("circle", {r: 5, fill: "var(--accent)", stroke: "var(--surface-gap)", "stroke-width": 2, opacity: 0});
+  const tip = tipOf(box);
+  svg.addEventListener("mousemove", ev => {
+    const r = svg.getBoundingClientRect(), x = (ev.clientX - r.left) * W / r.width;
+    const i = Math.max(0, Math.min(pts.length - 1, Math.round((x - L) / (W - L - R) * (pts.length - 1))));
+    cross.setAttribute("x1", X(i)); cross.setAttribute("x2", X(i)); cross.setAttribute("opacity", 1);
+    dot.setAttribute("cx", X(i)); dot.setAttribute("cy", Y(pts[i].y)); dot.setAttribute("opacity", 1);
+    const m = marks && marks[pts[i].x];
+    tip.textContent = pts[i].x + "  " + fmt$(pts[i].y) + (m ? `  |  ${m.n} closed, ${m.wins} won, ${fmtS(m.realized)}` : ""); tip.style.left = (X(i) * r.width / W) + "px"; tip.style.top = (Y(pts[i].y) * r.height / H) + "px"; tip.style.opacity = 1;
+  });
+  svg.addEventListener("mouseleave", () => { cross.setAttribute("opacity", 0); dot.setAttribute("opacity", 0); tip.style.opacity = 0; });
+  box.prepend(svg);
+}
+function multiLine(box, dates, series, legendBox) {
+  box.querySelectorAll("svg,.empty").forEach(n => n.remove()); legendBox.replaceChildren();
+  if (dates.length < 2) { box.append(el("div", {class: "empty"}, "not enough closed trades yet")); return; }
+  const cols = ["var(--c1)", "var(--c2)", "var(--c3)", "var(--c4)"];
+  series.forEach((sr, k) => legendBox.append(el("span", {}, el("i", {style: "background:" + cols[k]}), sr.name)));
+  const W = box.clientWidth || 600, H = box.clientHeight || 250, L = 56, R = 140, T = 10, B = 24;
+  const all = series.flatMap(x => x.pts).concat([0]), lo = Math.min(...all), hi = Math.max(...all), pad = (hi - lo) * 0.1 || 20, y0 = lo - pad, y1 = hi + pad;
+  const X = i => L + (W - L - R) * i / (dates.length - 1), Y = v => T + (H - T - B) * (1 - (v - y0) / (y1 - y0));
+  const svg = svgEl("svg", {viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": "Cumulative realized P&L by desk"});
+  const mk = (n, a, t) => { const e = svgEl(n, a, t); svg.append(e); return e; };
+  for (let k = 0; k <= 3; k++) { const v = y0 + (y1 - y0) * k / 3, y = Y(v); mk("line", {x1: L, x2: W - R, y1: y, y2: y, stroke: "var(--grid)"});
+    const rv = Math.round(v / 10) * 10; mk("text", {x: L - 8, y: y + 4, "text-anchor": "end", fill: "var(--text-3)", "font-size": 11}, (rv < 0 ? "-$" : "$") + Math.abs(rv)); }
+  mk("line", {x1: L, x2: W - R, y1: Y(0), y2: Y(0), stroke: "var(--edge-hi)", "stroke-dasharray": "3 4"});
+  const ends = [];
+  series.forEach((sr, k) => { mk("path", {d: sr.pts.map((v, i) => (i ? "L" : "M") + X(i).toFixed(1) + "," + Y(v).toFixed(1)).join(""), fill: "none", stroke: cols[k], "stroke-width": 2, "stroke-linejoin": "round"});
+    ends.push([Y(sr.pts[sr.pts.length - 1]), sr, k]); });
+  ends.sort((a, b) => a[0] - b[0]); let prevY = -99;                     // direct labels at the right end, kept apart
+  for (const [y, sr, k] of ends) { const yy = Math.max(y, prevY + 14); prevY = yy;
+    mk("text", {x: W - R + 8, y: yy + 4, fill: "var(--text-2)", "font-size": 11.5}, `${sr.name.replace(" desk", "")} ${fmtS(sr.pts[sr.pts.length - 1])}`); }
+  for (const i of [0, dates.length - 1]) mk("text", {x: X(i), y: H - 6, "text-anchor": i ? "end" : "start", fill: "var(--text-3)", "font-size": 11}, dates[i]);
+  const cross = mk("line", {y1: T, y2: H - B, stroke: "var(--edge-hi)", opacity: 0}), tip = tipOf(box);
+  svg.addEventListener("mousemove", ev => { const r = svg.getBoundingClientRect(), x = (ev.clientX - r.left) * W / r.width;
+    const i = Math.max(0, Math.min(dates.length - 1, Math.round((x - L) / (W - L - R) * (dates.length - 1))));
+    cross.setAttribute("x1", X(i)); cross.setAttribute("x2", X(i)); cross.setAttribute("opacity", 1);
+    tip.textContent = dates[i] + "  " + series.map(sr => `${sr.name.replace(" desk", "")} ${fmtS(sr.pts[i])}`).join("  |  ");
+    tip.style.left = (X(i) * r.width / W) + "px"; tip.style.top = (T + 10) + "px"; tip.style.opacity = 1; });
+  svg.addEventListener("mouseleave", () => { cross.setAttribute("opacity", 0); tip.style.opacity = 0; });
+  box.prepend(svg);
+}
+function winChart(box, rows) {
+  box.querySelectorAll("svg,.empty").forEach(n => n.remove());
+  if (!rows.some(r => r.n)) { box.append(el("div", {class: "empty"}, "no closed trades yet")); return; }
+  const W = box.clientWidth || 400, H = box.clientHeight || 260, L = 34, R = 8, T = 16, B = 40, n = rows.length, gap = 4, bw = (W - L - R) / n - gap;
+  const svg = svgEl("svg", {viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": "Win rate by entry hour"});
+  const mk = (nm, a, t) => { const e = svgEl(nm, a, t); svg.append(e); return e; }, tip = tipOf(box);
+  for (const v of [0, 50, 100]) { const y = T + (H - T - B) * (1 - v / 100); mk("line", {x1: L, x2: W - R, y1: y, y2: y, stroke: v === 50 ? "var(--edge-hi)" : "var(--grid)", "stroke-dasharray": v === 50 ? "3 4" : null});
+    mk("text", {x: L - 6, y: y + 4, "text-anchor": "end", fill: "var(--text-3)", "font-size": 11}, v + "%"); }
+  rows.forEach((r, i) => { const x = L + i * (bw + gap), wr = r.n ? r.wins / r.n * 100 : 0, h = (H - T - B) * wr / 100, y = H - B - h;
+    if (r.n) mk("path", {d: `M${x},${H - B}V${y + Math.min(4, h)}Q${x},${y} ${x + 4},${y}H${x + bw - 4}Q${x + bw},${y} ${x + bw},${y + Math.min(4, h)}V${H - B}Z`, fill: "var(--accent)"});
+    const lab = (r.h > 12 ? r.h - 12 : r.h) + (r.h >= 12 ? "p" : "a");
+    mk("text", {x: x + bw / 2, y: H - 22, "text-anchor": "middle", fill: "var(--text-2)", "font-size": 11.5}, lab);
+    mk("text", {x: x + bw / 2, y: H - 7, "text-anchor": "middle", fill: "var(--text-3)", "font-size": 10.5}, r.n + " tr");
+    if (r.n) mk("text", {x: x + bw / 2, y: y - 4, "text-anchor": "middle", fill: "var(--text-1)", "font-size": 11, class: "num"}, Math.round(wr) + "%");
+    const hit = mk("rect", {x, y: T, width: bw, height: H - T - B, fill: "transparent"});
+    hit.addEventListener("mousemove", () => { const rc = svg.getBoundingClientRect(); tip.textContent = `${lab}: ${r.wins} of ${r.n} won (${Math.round(wr)}%)`;
+      tip.style.left = ((x + bw / 2) * rc.width / W) + "px"; tip.style.top = (Math.min(y, H - B - 10) * rc.height / H) + "px"; tip.style.opacity = 1; });
+    hit.addEventListener("mouseleave", () => { tip.style.opacity = 0; }); });
+  box.prepend(svg);
+}
+function barChart(box, items, opts) {
+  box.querySelectorAll("svg,.empty").forEach(n => n.remove());
+  if (!items.length || items.every(([, v]) => !v)) { box.append(el("div", {class: "empty"}, opts.empty)); return; }
+  const W = box.clientWidth || 600, H = box.clientHeight || 240, ns = "http://www.w3.org/2000/svg";
+  const svg = document.createElementNS(ns, "svg"); svg.setAttribute("viewBox", `0 0 ${W} ${H}`); svg.setAttribute("role", "img"); svg.setAttribute("aria-label", opts.label);
+  const mk = (n, a, txt) => { const e = document.createElementNS(ns, n); for (const k in a) e.setAttribute(k, a[k]); if (txt != null) e.textContent = txt; svg.append(e); return e; };
+  const max = Math.max(...items.map(([, v]) => v)), tip = tipOf(box);
+  const hover = (e, text, cx, cy) => { e.addEventListener("mousemove", () => { const r = svg.getBoundingClientRect(); tip.textContent = text; tip.style.left = (cx * r.width / W) + "px"; tip.style.top = (cy * r.height / H) + "px"; tip.style.opacity = 1; e.setAttribute("opacity", 0.8); });
+    e.addEventListener("mouseleave", () => { tip.style.opacity = 0; e.setAttribute("opacity", 1); }); };
+  if (opts.horizontal) {
+    const L = 150, R = 40, rows = items.slice(0, 8), bh = Math.min(22, (H - 8) / rows.length - 6);
+    rows.forEach(([k, v], i) => { const y = 4 + i * (bh + 6), w = Math.max(3, (W - L - R) * v / max);
+      mk("text", {x: L - 10, y: y + bh / 2 + 4, "text-anchor": "end", fill: "var(--text-2)", "font-size": 12}, k.replace(/_/g, " "));
+      const b = mk("rect", {x: L, y, width: w, height: bh, rx: 4, fill: "var(--accent)"});
+      mk("text", {x: L + w + 6, y: y + bh / 2 + 4, fill: "var(--text-1)", "font-size": 12, class: "num"}, v);
+      hover(b, `${k.replace(/_/g, " ")}: ${v} refused`, L + w / 2, y);
+      const hit = mk("rect", {x: L, y: y - 3, width: W - L - R, height: bh + 6, fill: "transparent"}); hover(hit, `${k.replace(/_/g, " ")}: ${v} refused`, L + w / 2, y);
+    });
+  } else {
+    const L = 30, R = 8, T = 10, B = 26, n = items.length, gap = 2, bw = (W - L - R) / n - gap;
+    for (let k = 0; k <= 2; k++) { const v = Math.round(max * k / 2), y = T + (H - T - B) * (1 - v / max);
+      mk("line", {x1: L, x2: W - R, y1: y, y2: y, stroke: "var(--grid)"}); mk("text", {x: L - 6, y: y + 4, "text-anchor": "end", fill: "var(--text-3)", "font-size": 11}, v); }
+    items.forEach(([k, v], i) => { const x = L + i * (bw + gap), h = (H - T - B) * v / max, y = H - B - h;
+      const b = mk("path", {d: `M${x},${H - B}V${y + Math.min(4, h)}Q${x},${y} ${x + 4},${y}H${x + bw - 4}Q${x + bw},${y} ${x + bw},${y + Math.min(4, h)}V${H - B}Z`, fill: "var(--accent)"});
+      mk("text", {x: x + bw / 2, y: H - 8, "text-anchor": "middle", fill: "var(--text-3)", "font-size": 11}, k);
+      const hit = mk("rect", {x, y: T, width: bw, height: H - T - B, fill: "transparent"});
+      hover(hit, `${k}: ${v} signal${v === 1 ? "" : "s"}`, x + bw / 2, y); hover(b, `${k}: ${v} signals`, x + bw / 2, y); });
+  }
+  box.prepend(svg);
+}
+
+// ---------------- the pipeline
+const STAGE_IC = {
+  feeds: '<path d="M4 6h16M4 12h16M4 18h10"/>', scan: '<circle cx="11" cy="11" r="6"/><path d="M20 20l-4.5-4.5"/>',
+  gates: '<path d="M4 4h16l-6 8v6l-4 2v-8z"/>', judge: '<path d="M12 3v18M5 8h14M7 8l-3 7h6zM17 8l-3 7h6z"/>',
+  book: '<rect x="4" y="4" width="16" height="16" rx="3"/><path d="M8 12h8M12 8v8"/>', exit: '<path d="M14 4h6v6M20 4l-9 9M10 20H4v-6"/>',
+  post: '<path d="M4 5h16v11H8l-4 4z"/>'};
+function pipeline(s) {
+  const p = s.pipeline, b = s.book, j = s.judge;
+  const top = p.by_rule.slice(0, 2).map(([k, v]) => `${k.replace(/_/g, " ")} ${v}`).join(", ") || "none yet";
+  const stages = [
+    ["feeds", "Data in", s.feeds.filter(f => f.age_s != null && f.age_s < 900).length + "/" + s.feeds.length, "feeds written in the last 15 min"],
+    ["scan", "Scanner", p.signals, "signals seen (1% moves, velocity bursts)"],
+    ["gates", "Gates", p.refused, "refused: " + top],
+    ["judge", "Judge and debate", j.recent.length, "recent verdicts, " + j.vetoes_today + " veto today"],
+    ["book", "Booked", p.booked, b.positions.length + " open now"],
+    ["exit", "Exit watcher", p.exits, "exits today (ladder, stops, time stop)"],
+    ["post", "Cards", p.booked + p.exits, "entries and exits posted"],
+  ];
+  const f = $("flow"); f.replaceChildren();
+  stages.forEach(([ic, t, n, d], i) => {
+    const st = el("div", {class: "stage"}, el("div", {class: "t"}, t), el("div", {class: "n num"}, n), el("div", {class: "d"}, d));
+    const icn = document.createElement("span"); icn.innerHTML = `<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">${STAGE_IC[ic]}</svg>`;
+    st.append(icn.firstChild); if (i < stages.length - 1) st.append(el("div", {class: "link"})); f.append(st);
+  });
+}
+
+// ---------------- motion: count-up numbers that flash green / red when they change
+const REDUCED = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+function countTo(node, value, format) {
+  if (value == null || isNaN(value)) { node.textContent = format(value); return; }
+  const from = node._v == null ? value : node._v, changed = node._v != null && value !== node._v;
+  node._v = value;
+  if (changed) { node.classList.remove("flash-up", "flash-down"); void node.offsetWidth; node.classList.add(value > from ? "flash-up" : "flash-down"); }
+  if (REDUCED || from === value) { node.textContent = format(value); return; }
+  const t0 = performance.now(), dur = 700;
+  const step = (t) => { const k = Math.min(1, (t - t0) / dur), e = 1 - Math.pow(1 - k, 3);
+    node.textContent = format(from + (value - from) * e); if (k < 1) requestAnimationFrame(step); };
+  requestAnimationFrame(step);
+}
+function ticker(s) {
+  const items = [];
+  const b = s.book;
+  for (const q of s.prices || []) items.push([q.sym, q.last.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}), q.chg, q.chg == null ? "" : (q.chg >= 0 ? "+" : "") + q.chg.toFixed(2) + "%"]);
+  items.push(["BOOK", fmt$(b.equity_marked), b.day_pnl, fmtS(b.day_pnl) + " today"]);
+  for (const p of b.positions) items.push([`${p.symbol} ${p.side} ${p.strike}`, p.bid == null ? "no mark" : "$" + p.bid.toFixed(2), p.pnl_pct, pct(p.pnl_pct)]);
+  for (const c of b.closed_today) items.push([`${c.symbol} closed`, c.reason || "", c.pnl_pct, pct(c.pnl_pct)]);
+  items.push(["SIGNALS", String(s.pipeline.signals), null, `${s.pipeline.refused} refused, ${s.pipeline.booked} booked`]);
+  const tr = $("ticker"); tr.replaceChildren();
+  for (let pass = 0; pass < 2; pass++) for (const [k, v, sign, d] of items)       // twice, so the scroll loops seamlessly
+    tr.append(el("span", {class: "it", "aria-hidden": pass ? "true" : "false"}, el("b", {}, k), el("span", {class: "num"}, v),
+      el("span", {class: "num " + (sign == null ? "m" : sign >= 0 ? "up" : "down")}, d)));
+}
+
+// ---------------- live data-flow map: the bots as nodes, real tickers travelling between them, speech bubbles on arrival
+const NS = "http://www.w3.org/2000/svg";
+function svgEl(n, a, txt) { const e = document.createElementNS(NS, n); for (const k in a) e.setAttribute(k, a[k]); if (txt != null) e.textContent = txt; return e; }
+const FM = {W: 1300, H: 430, built: false, queue: [], live: [], nodes: {}, wires: {}, bubbles: {}, t0: 0, next: 0, data: null};
+const FM_NODES = {scout: [330, 215, "Scout"], gate: [530, 215, "Gatekeeper"], council: [760, 215, "Council"], book: [985, 215, "Book"],
+  exit: [1150, 215, "Exit Watcher"], discord: [1255, 120, "Discord"], bin: [530, 385, "Refused"]};
+function sized(svg, px) { svg.setAttribute("width", px); svg.setAttribute("height", px); return svg; }
+function fmBuild() {
+  const box = $("flowmap"); box.replaceChildren();
+  const svg = svgEl("svg", {viewBox: `0 0 ${FM.W} ${FM.H}`, role: "img", "aria-label": "Live data flow between the bots"});
+  const defs = svgEl("defs", {}); defs.innerHTML = '<linearGradient id="wireGrad" x1="0" x2="1"><stop offset="0" stop-color="var(--accent)"/><stop offset="1" stop-color="var(--accent-2)"/></linearGradient>'
+    + '<filter id="glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="3.2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>';
+  svg.append(defs);
+  const W = FM.wires, N = FM_NODES, layer = {wires: svgEl("g", {}), pk: svgEl("g", {}), nodes: svgEl("g", {}), bub: svgEl("g", {})};
+  const feeds = [["ThetaData", "option quotes"], ["Yahoo", "bars, quotes"], ["CBOE", "chains"], ["News", "headlines"], ["Models", "answers"]];
+  feeds.forEach(([nm, sub2], i) => { const y = 75 + i * 70, d = `M170,${y} C250,${y} 250,${N.scout[1]} ${N.scout[0] - 46},${N.scout[1]}`;
+    const w = svgEl("path", {class: "fm-wire flow", d}); layer.wires.append(w); W["feed" + i] = w;
+    const g = svgEl("g", {class: "fm-feed", transform: `translate(95,${y})`});
+    g.append(svgEl("rect", {x: -78, y: -21, width: 156, height: 42, rx: 21}), svgEl("circle", {cx: -58, cy: 0, r: 6, fill: "var(--accent)", filter: "url(#glow)"}),
+      svgEl("text", {x: -44, y: -2}, nm), svgEl("text", {class: "sub", x: -44, y: 13}, sub2)); layer.nodes.append(g); });
+  const wire = (k, d, flow) => { const w = svgEl("path", {class: "fm-wire" + (flow ? " flow" : ""), d}); layer.wires.append(w); W[k] = w; };
+  wire("scout_gate", `M${N.scout[0] + 46},215 L${N.gate[0] - 46},215`, true);
+  wire("gate_bin", `M${N.gate[0]},261 L${N.gate[0]},${N.bin[1] - 30}`, false);
+  wire("gate_council", `M${N.gate[0] + 46},215 C${N.gate[0] + 110},150 ${N.council[0] - 130},150 ${N.council[0] - 70},215`, true);
+  wire("council_book", `M${N.council[0] + 70},215 C${N.council[0] + 130},280 ${N.book[0] - 110},280 ${N.book[0] - 46},215`, true);
+  wire("book_exit", `M${N.book[0] + 46},215 L${N.exit[0] - 46},215`, true);
+  wire("exit_discord", `M${N.exit[0] + 40},190 C${N.exit[0] + 80},140 ${N.discord[0] - 60},120 ${N.discord[0] - 30},120`, true);
+  wire("book_discord", `M${N.book[0] + 30},180 C${N.book[0] + 90},90 ${N.discord[0] - 90},100 ${N.discord[0] - 30},115`, false);
+  for (const [k, [x, y, nm]] of Object.entries(N)) {
+    const g = svgEl("g", {class: "fm-node", transform: `translate(${x},${y})`});
+    if (k === "council") {                                            // six bots around a table
+      g.append(svgEl("ellipse", {class: "fm-halo", cx: 0, cy: 0, rx: 78, ry: 62}), svgEl("ellipse", {cx: 0, cy: 4, rx: 30, ry: 18, fill: "var(--glass-2)", stroke: "var(--edge-hi)"}));
+      ["Scout", "Chart Bot", "News Bot", "Sentiment", "Skeptic", "Chief"].forEach((r, i) => {
+        const ang = -Math.PI / 2 + i * Math.PI / 3, fx = Math.cos(ang) * 50, fy = Math.sin(ang) * 40;
+        const fw = svgEl("g", {class: "face-wrap", transform: `translate(${fx - 15},${fy - 15}) scale(0.54)`}); fw.append(sized(face(r, "neutral", true), 56)); g.append(fw); });
+      const bum = svgEl("g", {class: "bumper"}); while (g.childNodes.length) bum.append(g.firstChild); g.append(bum);
+    } else if (k === "discord" || k === "bin") {
+      g.append(svgEl("rect", {class: "fm-halo", x: -52, y: -24, width: 104, height: 48, rx: 14}));
+    } else {
+      g.append(svgEl("circle", {class: "fm-halo", r: 46}));
+      const fw = svgEl("g", {class: "face-wrap", transform: "translate(-40,-44) scale(1.43)"});
+      fw.append(sized(face({scout: "Scout", gate: "Skeptic", book: "Chief", exit: "Exit Watcher"}[k], "neutral", true), 56));
+      const bum = svgEl("g", {class: "bumper"}); bum.append(fw); g.append(bum);
+    }
+    const ly = k === "council" ? 82 : k === "discord" || k === "bin" ? -2 : 64;
+    g.append(svgEl("text", {class: "fm-label", y: ly, "text-anchor": "middle"}, nm));
+    const ct = svgEl("text", {class: "fm-count", y: ly + 16, "text-anchor": "middle"}, ""); g.append(ct);
+    layer.nodes.append(g); FM.nodes[k] = {g, ct, x, y};
+  }
+  svg.append(layer.wires, layer.pk, layer.nodes, layer.bub); FM.layer = layer; box.append(svg); FM.built = true;
+}
+// each bot's own voice (only when Sound is on): [wave, notes in Hz, note length s, volume]
+const VOICE = {scout: ["triangle", [880, 1175], 0.07, 0.10], gate: ["sine", [196], 0.16, 0.14], bin: ["sawtooth", [140, 110], 0.09, 0.05],
+  council: ["sine", [523, 659, 784], 0.12, 0.07], book: ["square", [988, 1319], 0.06, 0.05], exit: ["triangle", [784, 587, 440], 0.07, 0.08],
+  discord: ["sine", [1568], 0.12, 0.06]};
+let lastVoice = 0;
+function botTone(k, bad) {
+  if (!audio || !VOICE[k] || performance.now() - lastVoice < 120) return;
+  lastVoice = performance.now();
+  const [wave, notes, len, vol] = VOICE[k], t0 = audio.currentTime;
+  (bad && k === "gate" ? [174, 147] : notes).forEach((f, i) => { const o = audio.createOscillator(), g = audio.createGain();
+    o.type = wave; o.frequency.value = f; const t = t0 + i * len * 0.8;
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, t + len + 0.08);
+    o.connect(g).connect(audio.destination); o.start(t); o.stop(t + len + 0.1); });
+}
+function fmSay(k, text, color) {
+  const n = FM.nodes[k]; if (!n) return;
+  botTone(k, String(text).startsWith("No:"));
+  if (FM.bubbles[k]) FM.bubbles[k].remove();
+  const t = String(text).slice(0, 34), w = Math.max(60, t.length * 7.1 + 22), y = n.y - (k === "council" ? 96 : k === "bin" || k === "discord" ? 44 : 78);
+  const bx = Math.max(w / 2 + 6, Math.min(FM.W - w / 2 - 6, n.x));       // keep the bubble inside the frame
+  const g = svgEl("g", {transform: `translate(${bx},${y})`}), inner = svgEl("g", {class: "fm-bubble"});
+  inner.append(svgEl("rect", {x: -w / 2, y: -15, width: w, height: 28, rx: 14, fill: color || "var(--text-1)"}),
+    svgEl("path", {d: `M${n.x - bx - 6} 13 L${n.x - bx} 21 L${n.x - bx + 6} 13 Z`, fill: color || "var(--text-1)"}), svgEl("text", {y: 4, "text-anchor": "middle"}, t));
+  g.append(inner); FM.layer.bub.append(g); FM.bubbles[k] = g;
+  const bw = n.g.querySelector(".bumper"); if (bw) { bw.classList.remove("bump"); void bw.getBBox(); bw.classList.add("bump"); }
+  setTimeout(() => { if (FM.bubbles[k] === g) { g.remove(); delete FM.bubbles[k]; } }, 3000);
+}
+function fmRoute(x) {
+  const kind = x.kind === "exit" ? "exit" : x.status.startsWith("refused") ? "refused" : x.status === "booked" ? "booked" : "seen";
+  const rule = kind === "refused" ? x.status.replace("refused: ", "").replace(/_/g, " ") : "";
+  const debate = (FM.data.chat || []).find(c => c.symbol === x.symbol), chief = debate ? debate.verdict : "TAKE";
+  if (kind === "exit") return {color: "#1d4ed8", legs: [["book_exit", "exit", x.status], ["exit_discord", "discord", "exit card posted"]]};
+  const legs = [["scout_gate", "gate", kind === "refused" ? "No: " + rule : x.symbol + " clears the rails"]];
+  if (kind === "refused") legs.push(["gate_bin", "bin", x.symbol + " dropped"]);
+  if (kind === "booked") legs.push(["gate_council", "council", "Chief: " + chief], ["council_book", "book", "Booked " + x.symbol], ["book_discord", "discord", "entry card posted"]);
+  return {color: kind === "refused" ? "var(--down)" : kind === "booked" ? "var(--up)" : "var(--text-3)", legs, first: ["scout", `${x.symbol} ${x.dir === "up" ? "up" : "down"}!`]};
+}
+function fmSpawn() {
+  if (!FM.queue.length) FM.queue = (FM.data.pipeline.feed || []).slice(0, 18).reverse();
+  const x = FM.queue.pop(); if (!x) return;
+  const r = fmRoute(x); if (r.first) fmSay(r.first[0], r.first[1]);
+  const g = svgEl("g", {class: "fm-pkt", style: `filter: drop-shadow(0 0 6px ${r.color})`});
+  g.append(svgEl("rect", {x: -32, y: -12, width: 64, height: 24, rx: 12, fill: r.color}), svgEl("text", {y: 4, "text-anchor": "middle"}, x.symbol));
+  FM.layer.pk.append(g); FM.live.push({g, legs: r.legs, i: 0, t: 0, color: r.color});
+  const fi = Math.floor(Math.random() * 5);                              // a data dot from a feed, every spawn
+  const dot = svgEl("circle", {r: 4.5, fill: "var(--accent)", filter: "url(#glow)"}); FM.layer.pk.append(dot); FM.live.push({g: dot, legs: [["feed" + fi, null, null]], i: 0, t: 0, dot: true});
+}
+function fmTick(ts) {
+  if (!FM.built || !FM.data) { requestAnimationFrame(fmTick); return; }
+  const dt = Math.min(0.05, (ts - (FM.t0 || ts)) / 1000); FM.t0 = ts;
+  if (ts > FM.next) { fmSpawn(); FM.next = ts + 1500; }
+  for (const p of FM.live) {
+    const [wk, node, say] = p.legs[p.i], w = FM.wires[wk], L = w.getTotalLength();
+    p.t += dt * (p.dot ? 230 : 210) / L;
+    const pt = w.getPointAtLength(Math.min(1, p.t) * L); p.g.setAttribute("transform", `translate(${pt.x},${pt.y})`);
+    if (p.dot) p.g.setAttribute("cx", 0), p.g.setAttribute("cy", 0);
+    if (p.t >= 1) { if (node) fmSay(node, say, node === "bin" ? "var(--down)" : null); p.i++; p.t = 0; if (p.i >= p.legs.length) { p.g.remove(); p.done = true; } }
+  }
+  FM.live = FM.live.filter(p => !p.done);
+  requestAnimationFrame(fmTick);
+}
+function flowMap(s) {
+  FM.data = s;
+  if (!FM.built) { fmBuild(); if (!REDUCED) requestAnimationFrame(fmTick); }
+  const p = s.pipeline, set = (k, v) => FM.nodes[k] && (FM.nodes[k].ct.textContent = v);
+  set("scout", p.signals + " signals"); set("gate", p.refused + " refused"); set("council", (s.chat || []).length + " debates");
+  set("book", s.book.positions.length + " open"); set("exit", p.exits + " exits"); set("discord", (p.booked + p.exits) + " cards"); set("bin", "");
+}
+
+// ---------------- full-screen flow (for a TV or a second monitor)
+$("fullscreen").onclick = () => { const c = $("flow-card");
+  if (document.fullscreenElement) document.exitFullscreen(); else if (c.requestFullscreen) c.requestFullscreen(); };
+document.addEventListener("fullscreenchange", () => { $("fullscreen").textContent = document.fullscreenElement ? "Exit full screen" : "Full screen"; });
+function fsBar(s) {
+  const b = s.book, p = s.pipeline, bar = $("fs-bar"); bar.replaceChildren();
+  for (const [k, v, cls] of [["Equity", fmt$(b.equity_marked), ""], ["Today", fmtS(b.day_pnl), b.day_pnl >= 0 ? "up" : "down"],
+       ["Signals", p.signals, ""], ["Refused", p.refused, ""], ["Booked", p.booked, ""], ["Open", b.positions.length, ""]])
+    bar.append(el("div", {}, el("span", {class: "muted"}, k), el("b", {class: "num " + cls}, v)));
+}
+
+// ---------------- trade replay
+let replaySel = 0, replayTimer = null;
+function replayRender(s, play) {
+  const list = $("replay-list"), js = s.journeys || []; list.replaceChildren();
+  if (replaySel >= js.length) replaySel = 0;
+  js.forEach((j, i) => { const b = el("button", {"aria-pressed": String(i === replaySel)}, j.label + (j.open ? " (open)" : ""));
+    b.onclick = () => { replaySel = i; replayRender(s, true); }; list.append(b); });
+  const j = js[replaySel], box = $("replay-steps");
+  if (!j) { box.replaceChildren(el("div", {class: "empty"}, "no trades to replay yet")); $("replay-sum").textContent = ""; return; }
+  $("replay-sum").textContent = j.open ? "still open" : `closed, ${fmtS(j.realized)}`;
+  if (!play && box.dataset.id === j.id) return;
+  box.dataset.id = j.id; box.replaceChildren(); clearTimeout(replayTimer);
+  const stepEl = (st) => el("div", {class: "step " + st.kind}, (() => { const w = el("div", {}); w.append(face(st.who === "Gatekeeper" ? "Skeptic" : st.who === "Book" ? "Chief" : st.who,
+      st.stance || (st.kind === "exit" ? ((st.pnl || 0) >= 0 ? "for" : "against") : "neutral"), true, st.kind === "exit" ? ((st.pnl || 0) >= 0 ? "excited" : "worried") : null)); w.firstChild.style.width = "46px"; w.firstChild.style.height = "46px"; return w; })(),
+    el("span", {class: "tm"}, st.t), el("div", {class: "tx"}, el("b", {}, st.who), el("span", {}, st.text)));
+  if (!play || REDUCED) { j.steps.forEach(st => box.append(stepEl(st))); $("replay-bar").style.width = "100%"; return; }
+  let i = 0; $("replay-bar").style.width = "0";
+  const nxt = () => { if (i >= j.steps.length) return; box.append(stepEl(j.steps[i])); i++;
+    $("replay-bar").style.width = (i / j.steps.length * 100) + "%"; replayTimer = setTimeout(nxt, 750); };
+  nxt();
+}
+$("replay-play").onclick = () => { if (last) replayRender(last, true); };
+
+// ---------------- sound and alert banners (sound starts off: browsers only allow it after a click)
+let audio = null, prevAlert = null;
+function chime(kind) {
+  if (!audio) return;
+  const now = audio.currentTime, notes = kind === "bad" ? [523, 392] : kind === "crit" ? [330, 262, 330] : [659, 880];
+  notes.forEach((f, i) => { const o = audio.createOscillator(), g = audio.createGain(); o.type = "sine"; o.frequency.value = f;
+    g.gain.setValueAtTime(0.0001, now + i * 0.14); g.gain.exponentialRampToValueAtTime(0.18, now + i * 0.14 + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001, now + i * 0.14 + 0.32); o.connect(g).connect(audio.destination); o.start(now + i * 0.14); o.stop(now + i * 0.14 + 0.35); });
+}
+function toast(kind, title, text) {
+  const t = el("div", {class: "toast " + kind}, el("b", {}, title), text); $("toasts").prepend(t);
+  setTimeout(() => t.remove(), 7000); chime(kind);
+}
+function alerts(s) {
+  const b = s.book, p = s.pipeline, dayPct = b.day_start ? b.day_pnl / b.day_start * 100 : 0;
+  const cur = {booked: p.booked, exits: p.exits, rail: b.risk.halted || b.risk.flatten_pending || dayPct <= -b.risk.kill_pct, veto: s.judge.vetoes_today};
+  if (prevAlert) {
+    if (cur.booked > prevAlert.booked) { const x = p.feed.find(f => f.status === "booked"); toast("good", "Trade booked", x ? `${x.symbol} ${x.dir === "up" ? "call" : "put"}` : "new position"); }
+    if (cur.exits > prevAlert.exits) { const c = b.closed_today[b.closed_today.length - 1]; toast((c && c.pnl_pct >= 0) ? "good" : "bad", "Position closed", c ? `${c.symbol} ${c.reason} ${pct(c.pnl_pct)}` : "an exit"); }
+    if (cur.veto > prevAlert.veto) toast("bad", "Debate veto", "the bots refused a trade the rules would have taken");
+    if (cur.rail && !prevAlert.rail) toast("crit", "Risk rail", "the book is at or past its daily kill line");
+  }
+  prevAlert = cur;
+}
+$("sound").onclick = () => {
+  if (audio) { audio.close(); audio = null; $("sound").textContent = "Sound off"; $("sound").setAttribute("aria-pressed", "false"); return; }
+  audio = new (window.AudioContext || window.webkitAudioContext)(); $("sound").textContent = "Sound on"; $("sound").setAttribute("aria-pressed", "true"); chime("good");
+};
+function setTheme(t) { document.documentElement.setAttribute("data-theme", t); $("theme").textContent = t === "dark" ? "Light" : "Dark";
+  try { localStorage.setItem("cluse-dash-theme", t); } catch (e) {} if (last) { flowMap.sig = null; render(last); } }
+$("theme").onclick = () => setTheme(document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark");
+try { const t = localStorage.getItem("cluse-dash-theme"); if (t) document.documentElement.setAttribute("data-theme", t); } catch (e) {}
+if (document.documentElement.getAttribute("data-theme") === "dark") $("theme").textContent = "Light";
+
+// ---------------- robot faces (one look per bot; mouth = the stance it took)
+const BOTS = {
+  "Scout":       {c: "#2a78d6", head: "round",  ant: 1, job: "spots the moves"},
+  "Chart Bot":   {c: "#eb6834", head: "square", ant: 2, job: "reads the levels"},
+  "News Bot":    {c: "#1baf7a", head: "tv",     ant: 1, job: "finds the why"},
+  "Sentiment":   {c: "#d99a00", head: "round",  ant: 0, job: "reads the mood"},
+  "Skeptic":     {c: "#d55181", head: "square", ant: 0, job: "argues against"},
+  "Chief":       {c: "#0b7a8f", head: "crown",  ant: 0, job: "makes the call"},
+  "Exit Watcher":{c: "#6250d6", head: "tv",     ant: 2, job: "guards open trades"},
+  "Q&A Bot":     {c: "#0f9d58", head: "round",  ant: 1, job: "answers members"},
+};
+let FACE_N = 0;
+function face(name, stance, busy, mood) {
+  // a glossy 3D robot head: gradient shell, rim light, glass visor with a reflection, glowing eyes, and a prop per bot
+  const b = BOTS[name] || {c: "#75859a", head: "round", ant: 1}, id = "f" + (++FACE_N);
+  const svg = svgEl("svg", {class: "face" + (busy ? "" : " idle"), viewBox: "-4 -8 64 66", "aria-hidden": "true"});
+  const defs = svgEl("defs", {});
+  defs.innerHTML = `<linearGradient id="${id}s" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity="0.55"/><stop offset="0.18" stop-color="${b.c}"/><stop offset="1" stop-color="${b.c}" stop-opacity="1"/></linearGradient>`
+    + `<linearGradient id="${id}d" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity="0.35"/></linearGradient>`
+    + `<linearGradient id="${id}v" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1b2b44"/><stop offset="1" stop-color="#060d18"/></linearGradient>`
+    + `<radialGradient id="${id}e"><stop offset="0" stop-color="#ffffff"/><stop offset="0.55" stop-color="#bff3ff"/><stop offset="1" stop-color="#5fd6ff" stop-opacity="0.6"/></radialGradient>`
+    + `<filter id="${id}sh" x="-30%" y="-30%" width="160%" height="170%"><feDropShadow dx="0" dy="2.5" stdDeviation="2.2" flood-color="#0d1b2e" flood-opacity="0.35"/></filter>`;
+  svg.append(defs);
+  const add = (n, a) => { const e = svgEl(n, a); svg.append(e); return e; };
+  const r = b.head === "round" ? 19 : b.head === "tv" ? 9 : 6;
+  // antennas (Sentiment's ends in a heart, Q&A's in a speech bubble)
+  if (b.ant) for (const x of (b.ant === 2 ? [19, 37] : [28])) {
+    add("line", {x1: x, y1: 12, x2: x, y2: 3, stroke: "#9aa9bb", "stroke-width": 2.4, "stroke-linecap": "round"});
+    add("circle", {class: "bulb", cx: x, cy: 2.5, r: 3.4, fill: busy ? "#ffd23f" : b.c, stroke: "#fff", "stroke-width": 0.8});
+  }
+  if (name === "Sentiment") { add("line", {x1: 28, y1: 12, x2: 28, y2: 4, stroke: "#9aa9bb", "stroke-width": 2.4, "stroke-linecap": "round"});
+    add("path", {class: "bulb", d: "M28 5 C24 0 19 4 23 8 L28 12 L33 8 C37 4 32 0 28 5Z", transform: "translate(0,-6)", fill: "#ff5c8a"}); }
+  if (name === "Q&A Bot") add("path", {d: "M33 -4 h14 a3 3 0 0 1 3 3 v6 a3 3 0 0 1 -3 3 h-8 l-4 4 v-4 h-2 a3 3 0 0 1 -3 -3 v-6 a3 3 0 0 1 3 -3z", fill: "#ffffff", stroke: b.c, "stroke-width": 1.4});
+  if (b.head === "crown" || name === "Chief") {
+    add("path", {d: "M13 15 L17 4 L23 11 L28 1 L33 11 L39 4 L43 15 Z", fill: "#ffd23f", stroke: "#b88a00", "stroke-width": 1.1});
+    for (const [cx, col] of [[17, "#ff5c8a"], [28, "#5fd6ff"], [39, "#19c37d"]]) add("circle", {cx, cy: cx === 28 ? 4 : 7, r: 1.8, fill: col});
+  }
+  // headphones (News Bot)
+  if (name === "News Bot") add("path", {d: "M7 30 C7 6 49 6 49 30", fill: "none", stroke: "#2b3a4f", "stroke-width": 3.2, "stroke-linecap": "round"});
+  // the shell: drop shadow, gradient, a darker bottom, and a glossy highlight
+  add("rect", {x: 6, y: 12, width: 44, height: 39, rx: r, fill: `url(#${id}s)`, filter: `url(#${id}sh)`});
+  add("rect", {x: 6, y: 12, width: 44, height: 39, rx: r, fill: `url(#${id}d)`});
+  add("ellipse", {cx: 20, cy: 17.5, rx: 10, ry: 3.4, fill: "#fff", opacity: 0.45});
+  if (name === "News Bot") for (const x of [3.5, 52.5]) add("rect", {x: x - 4, y: 24, width: 8, height: 13, rx: 3.5, fill: "#2b3a4f", stroke: "#fff", "stroke-width": 0.8});
+  // the visor
+  add("rect", {x: 11, y: 19, width: 34, height: 22, rx: Math.min(r, 9), fill: `url(#${id}v)`, stroke: "rgba(255,255,255,0.35)", "stroke-width": 0.8});
+  add("path", {d: "M14 22 L22 22 L16 30 L13 30 Z", fill: "#fff", opacity: 0.12});
+  // eyes
+  const lite = "rgba(255,255,255,0.95)";
+  const eyes = [];
+  for (const [cx, cls] of [[21, "eye"], [35, "eye r"]]) { const g = svgEl("g", {class: cls});
+    g.append(svgEl("ellipse", {cx, cy: 28, rx: 4.4, ry: 4.8, fill: `url(#${id}e)`}));
+    g.append(svgEl("circle", {class: "pupil", cx, cy: 28.5, r: mood === "excited" ? 2.6 : 2, fill: "#06101f"}));
+    g.append(svgEl("circle", {cx: cx + 1.4, cy: 26.6, r: 0.9, fill: "#fff"})); svg.append(g); eyes.push(g); }
+  // props on the face
+  if (name === "Chart Bot") { for (const cx of [21, 35]) add("rect", {x: cx - 6, y: 22.5, width: 12, height: 11, rx: 3, fill: "none", stroke: "#ffd23f", "stroke-width": 1.5});
+    add("line", {x1: 27, y1: 27, x2: 29, y2: 27, stroke: "#ffd23f", "stroke-width": 1.5});
+    add("polyline", {points: "14,17 19,15 23,16.5 28,13.5 33,15 38,12.5 42,14", fill: "none", stroke: "#fff", "stroke-width": 1.4, "stroke-linecap": "round", opacity: 0.85}); }
+  if (name === "Skeptic") { add("circle", {cx: 35, cy: 28, r: 6.2, fill: "none", stroke: "#ffd23f", "stroke-width": 1.6});
+    add("path", {d: "M41 31 Q44 38 41 44", fill: "none", stroke: "#ffd23f", "stroke-width": 1}); add("path", {d: "M16 20.5 L25 22.5", stroke: lite, "stroke-width": 1.8, "stroke-linecap": "round"}); }
+  if (name === "Scout") { add("circle", {cx: 50, cy: 22, r: 5, fill: "#2b3a4f", stroke: "#fff", "stroke-width": 1}); add("circle", {cx: 50, cy: 22, r: 2.6, fill: "#5fd6ff"}); add("rect", {x: 44, y: 21, width: 4, height: 2.2, fill: "#2b3a4f"}); }
+  if (name === "Exit Watcher") add("path", {d: "M44 38 L51 35 L58 38 L58 44 C58 49 51 52 51 52 C51 52 44 49 44 44 Z", fill: "#19c37d", stroke: "#fff", "stroke-width": 1.2, transform: "translate(-3,-1) scale(0.95)"});
+  // the mouth (the stance it took), cheeks
+  const mouth = mood === "excited" ? "M20 34 Q28 43 36 34 Z" : mood === "worried" ? "M22 38 Q28 33 34 38" : mood === "asleep" ? "M25 36 Q28 38 31 36"
+    : stance === "for" ? "M22 35 Q28 40 34 35" : stance === "against" ? "M22 38 Q28 33 34 38" : "M22 36 L34 36";
+  add("path", {d: mouth, fill: mood === "excited" ? lite : "none", stroke: lite, "stroke-width": 2, "stroke-linecap": "round"});
+  add("circle", {cx: 9.5, cy: 33, r: 2.4, fill: "#ff8fab", opacity: 0.55}); add("circle", {cx: 46.5, cy: 33, r: 2.4, fill: "#ff8fab", opacity: 0.55});
+  if (mood === "asleep") { eyes.forEach(e => e.remove());
+    for (const cx of [21, 35]) add("path", {d: `M${cx - 4} 28 Q${cx} 31 ${cx + 4} 28`, fill: "none", stroke: lite, "stroke-width": 2, "stroke-linecap": "round"});
+    add("text", {class: "zz", x: 46, y: 10}, "z"); }
+  if (mood === "worried") add("path", {class: "sweat", d: "M47 16 q3 5 0 7 q-3 -2 0 -7z", fill: "#7cc4ff"});
+  return svg;
+}
+function roster(s) {
+  const p = s.pipeline, j = s.judge, chat = s.chat || [], b = s.book;
+  const lastSig = p.feed.find(x => x.kind === "signal"), d0 = chat[0];
+  const stanceOf = (role) => { const m = d0 && d0.msgs.find(x => x.role === role); return m ? m.stance : "neutral"; };
+  const say = (role) => { const m = d0 && d0.msgs.find(x => x.role === role); return m ? m.text : ""; };
+  const verdicts = {}; for (const r of chat) verdicts[r.verdict] = (verdicts[r.verdict] || 0) + 1;
+  const svcUp = (n) => (s.services.find(x => x.name === n) || {}).state === "running";
+  const rows = [
+    ["Scout", s.market_open || p.signals > 0, p.signals ? `${p.signals} moves flagged today${lastSig ? `, last ${lastSig.symbol} at ${lastSig.at}` : ""}` : "watching ~520 names for 1% moves and 1-second bursts"],
+    ["Chart Bot", chat.length > 0, d0 ? `${d0.symbol}: ${say("Chart Bot")}` : "will check room, extension and breakouts on the next trade"],
+    ["News Bot", chat.length > 0, d0 ? `${d0.symbol}: ${say("News Bot")}` : "will read the headlines behind the next move"],
+    ["Sentiment", chat.length > 0, d0 ? say("Sentiment") : "reads the market regime and catalysts"],
+    ["Skeptic", chat.length > 0, d0 ? say("Skeptic") : "argues against every trade, citing facts only"],
+    ["Chief", chat.length > 0, chat.length ? `${chat.length} calls: ` + Object.entries(verdicts).map(([k, v]) => `${v} ${k}`).join(", ") + `; ${j.vetoes_today}/2 vetoes today` : "decides TAKE, WAIT or SKIP from the briefs"],
+    ["Exit Watcher", svcUp("exit-watch") && b.positions.length > 0, svcUp("exit-watch") ? `guarding ${b.positions.length} open position${b.positions.length === 1 ? "" : "s"} every 3 s; ${p.exits} exit${p.exits === 1 ? "" : "s"} today` : "not running"],
+    ["Q&A Bot", svcUp("qa-brain-worker"), svcUp("qa-brain-worker") ? "answering questions in IronGrid and your server" : "not running"],
+  ];
+  const box = $("roster"); box.replaceChildren();
+  for (const [name, busy, text] of rows) {
+    const st = ["Scout", "Chart Bot", "News Bot", "Sentiment", "Skeptic", "Chief"].includes(name) ? stanceOf(name) : (busy ? "for" : "neutral");
+    const lastExit = b.closed_today[b.closed_today.length - 1];
+    const mood = !s.market_open && !busy ? "asleep" : name === "Exit Watcher" && lastExit ? (lastExit.pnl_pct >= 0 ? "excited" : "worried")
+      : name === "Chief" && d0 ? (d0.verdict === "TAKE" ? "excited" : d0.verdict === "SKIP" ? "worried" : null) : null;
+    box.append(el("div", {class: "bot" + (busy ? " busy" : "")}, face(name, st, busy, mood),
+      el("div", {}, el("div", {class: "bn"}, name), el("div", {class: "bj"}, (BOTS[name] || {}).job || ""), el("div", {class: "bd"}, text))));
+  }
+}
+
+// ---------------- the desk floor
+const ROLE = {"Scout": ["var(--s1)", "SC"], "Chart Bot": ["#d95926", "CH"], "News Bot": ["var(--s3)", "NW"],
+  "Sentiment": ["#c98500", "SE"], "Skeptic": ["#d55181", "SK"], "Chief": ["linear-gradient(135deg, var(--accent), var(--accent-2))", "CF"]};
+let room = 0;
+function spark(curve) {
+  const ns = "http://www.w3.org/2000/svg", svg = document.createElementNS(ns, "svg"), W = 220, H = 64;
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`); svg.setAttribute("preserveAspectRatio", "none"); svg.setAttribute("aria-hidden", "true");
+  if (curve.length < 2) return svg;
+  const lo = Math.min(0, ...curve), hi = Math.max(0, ...curve), sp = hi - lo || 1;
+  const X = i => i * W / (curve.length - 1), Y = v => 4 + (H - 8) * (1 - (v - lo) / sp);
+  const col = curve[curve.length - 1] >= 0 ? "var(--accent-2)" : "#ff6b6b";
+  const mk = (n, a) => { const e = document.createElementNS(ns, n); for (const k in a) e.setAttribute(k, a[k]); svg.append(e); return e; };
+  mk("line", {x1: 0, x2: W, y1: Y(0), y2: Y(0), stroke: "var(--grid)", "stroke-dasharray": "3 4"});
+  const d = curve.map((v, i) => (i ? "L" : "M") + X(i).toFixed(1) + "," + Y(v).toFixed(1)).join("");
+  mk("path", {d: d + `L${W},${Y(0)}L0,${Y(0)}Z`, fill: col, opacity: 0.14});
+  mk("path", {d, fill: "none", stroke: col, "stroke-width": 2, "vector-effect": "non-scaling-stroke"});
+  return svg;
+}
+function floor(s) {
+  const rooms = $("rooms"), chat = $("chat"); rooms.replaceChildren(); chat.replaceChildren();
+  if (!s.chat.length) chat.append(el("div", {class: "empty"}, "no debates yet: they start with the first booked signal trade after the deploy"));
+  if (room >= s.chat.length) room = 0;
+  s.chat.forEach((r, i) => { const b = el("button", {"aria-pressed": String(i === room)}, `${r.symbol} ${r.at}`);
+    b.onclick = () => { room = i; floor.sig = null; floor(s); }; rooms.append(b); });
+  const r = s.chat[room];
+  if (r) {
+    const sig = `${r.symbol}|${r.at}|${r.verdict}`, replay = sig !== floor.sig && !REDUCED;
+    floor.sig = sig; const token = (floor.token = (floor.token || 0) + 1);
+    const bubble = (m) => { const [bg, ini] = ROLE[m.role] || ["var(--glass-2)", "?"];
+      return el("div", {class: "msg" + (m.role === "Chief" ? " chief" : "")},
+        el("div", {class: "av robo", "aria-hidden": "true"}, face(m.role, m.stance, true)),
+        el("div", {class: "bubble"}, el("div", {class: "who"}, m.role, el("span", {class: "stance " + m.stance}, m.stance)), el("div", {class: "txt"}, m.text))); };
+    if (!replay) { for (const m of r.msgs) chat.append(bubble(m)); }
+    else {                                          // a new debate: the bots speak one at a time, each "typing" first
+      let i = 0;
+      const next = () => { if (token !== floor.token || i >= r.msgs.length) return;
+        const m = r.msgs[i++], [bg, ini] = ROLE[m.role] || ["var(--glass-2)", "?"];
+        const t = el("div", {class: "msg"}, el("div", {class: "av robo", "aria-hidden": "true"}, face(m.role, m.stance, true)),
+          el("div", {class: "bubble"}, el("div", {class: "who"}, m.role + " is typing"), el("span", {class: "typing", "aria-hidden": "true"}, el("i"), el("i"), el("i"))));
+        chat.append(t);
+        setTimeout(() => { if (token !== floor.token) return; t.replaceWith(bubble(m)); setTimeout(next, 180); }, 520); };
+      next();
+    }
+  }
+  const dk = $("desks"); dk.replaceChildren();
+  for (const d of s.desks) {
+    const wr = d.trades ? Math.round(d.wins / d.trades * 100) + "% won" : "no trades yet";
+    dk.append(el("div", {class: "desk"}, el("div", {class: "nm"}, d.name), el("div", {class: "w"}, d.what),
+      el("div", {class: "big num " + (d.realized >= 0 ? "up" : "down")}, fmtS(d.realized)),
+      el("div", {class: "st"}, `${d.trades} closed, ${wr}, ${d.open} open`), spark(d.curve)));
+  }
+  const p = s.pipeline, b = s.book;
+  $("floor-now").textContent = `${p.signals} signals today, ${p.refused} refused, ${p.booked} booked, ${p.exits} closed. `
+    + `Book ${fmt$(b.equity_marked)} (${fmtS(b.day_pnl)} today), ${b.positions.length} open. ${s.judge.vetoes_today}/2 debate vetoes today.`;
+}
+for (const t of ["tab-floor", "tab-over"]) $(t).onclick = () => {
+  for (const [t2, v2] of [["tab-floor", "view-floor"], ["tab-over", "view-over"]]) { $(t2).setAttribute("aria-selected", String(t2 === t)); $(v2).hidden = t2 !== t; }
+  if (last) render(last);
+};
+
+// ---------------- render
+let last = null;
+function render(s) {
+  last = s;
+  $("demo").hidden = !s.demo; $("demo").className = "pill demo";
+  $("clock").textContent = s.now; $("deploy").textContent = "deployed " + s.deployed.sha;
+  $("mkt").textContent = s.market_open ? "market open" : "market closed"; $("mkt-dot").className = "dot" + (s.market_open ? " live" : "");
+  const b = s.book, vsStart = b.equity_marked - b.start;
+  countTo($("k-eq"), b.equity_marked, fmt$);
+  $("k-eq-sub").textContent = `${fmtS(vsStart)} vs the $${b.start.toLocaleString()} start; at cost ${fmt$(b.equity_cost)}`;
+  countTo($("k-day"), b.day_pnl, fmtS); $("k-day").classList.toggle("up", b.day_pnl >= 0); $("k-day").classList.toggle("down", b.day_pnl < 0);
+  $("k-day-sub").textContent = `realized ${fmtS(b.realized_today)}; ${s.pipeline.booked} booked, ${s.pipeline.exits} closed`;
+  countTo($("k-cash"), b.cash, fmt$); $("k-cash-sub").textContent = `${b.positions.length} open position${b.positions.length === 1 ? "" : "s"}`;
+  const r = b.risk, dayPct = b.day_start ? b.day_pnl / b.day_start * 100 : 0, kr = $("k-risk"); kr.replaceChildren();
+  if (r.halted) kr.append(status("crit", "Halted"));
+  else if (r.flatten_pending) kr.append(status("crit", "Kill switch tripped"));
+  else if (dayPct <= -r.kill_pct) kr.append(status("crit", "Past the kill line"));
+  else if (r.probation_until) kr.append(status("warn", "Probation"));
+  else if (dayPct <= -5) kr.append(status("serious", "Near the switch"));
+  else kr.append(status("good", "Armed, clear"));
+  $("k-risk-sub").textContent = `day ${pct(dayPct)} of the ${r.kill_pct}% kill line; ${r.trips} trip${r.trips === 1 ? "" : "s"} in the window`;
+  ticker(s);
+  roster(s);
+  flowMap(s);
+  fsBar(s);
+  replayRender(s, false);
+  alerts(s);
+  floor(s);
+  pipeline(s);
+  const marks = {}; for (const d of (s.charts || {}).days || []) marks[d.d] = d;
+  lineChart($("eq-chart"), b.equity_hist.map(h => ({x: h.d, y: h.eq})), "Equity at the end of each session, with closed trades", marks);
+  if (!$("view-over").hidden) { multiLine($("desk-chart"), s.charts.dates, s.charts.desks, $("desk-legend")); winChart($("hourwin-chart"), s.charts.by_hour); }
+  barChart($("rule-chart"), s.pipeline.by_rule, {horizontal: true, label: "Refusals by rule today", empty: "no refusals today"});
+  barChart($("hour-chart"), s.pipeline.by_hour.map((v, i) => [(i + 9 > 12 ? i - 3 : i + 9) + (i + 9 >= 12 ? "p" : "a"), v]), {label: "Signals by hour", empty: "no signals today"});
+  const svc = $("svc"); svc.replaceChildren();
+  for (const d of s.services) {
+    const k = d.state === "running" ? "good" : d.state === "unknown" ? "warn" : "crit";
+    svc.append(el("div", {class: "s"}, el("div", {class: "nm"}, d.name), el("div", {class: "st"}, status(k, d.state),
+      d.heartbeat_s != null ? `  loop ${ago(d.heartbeat_s)} ago` : "")));
+  }
+  $("veto").textContent = s.judge.veto_off ? "veto switched off" : `${s.judge.vetoes_today}/2 vetoes today`;
+  table("judge", [["Time"], ["Name"], ["Judge"], ["Debate"], ["s", 1]],
+    s.judge.recent.slice(0, 6).map(x => [x.at, x.symbol, x.judge, x.debate || "-", x.seconds == null ? "-" : x.seconds.toFixed(1)]), "no verdicts yet");
+  table("pos", [["Name"], ["Side"], ["Strike"], ["Expiry"], ["Paid", 1], ["Bid", 1], ["P&L", 1], ["Opened"]],
+    b.positions.map(p => [p.symbol, el("span", {class: "tag " + (p.side === "CALL" ? "call" : "put")}, p.side), p.strike, p.expiry,
+      "$" + Number(p.buy).toFixed(2), p.bid == null ? "no mark" : "$" + p.bid.toFixed(2),
+      p.pnl_pct == null ? "-" : el("span", {class: p.pnl_pct >= 0 ? "up" : "down"}, pct(p.pnl_pct)), p.opened]), "no open positions");
+  table("closed", [["Time"], ["Name"], ["Why"], ["Result", 1], ["$", 1]],
+    b.closed_today.map(c => [c.at, c.symbol, c.reason, el("span", {class: (c.pnl_pct || 0) >= 0 ? "up" : "down"}, pct(c.pnl_pct)), fmtS(c.realized)]), "nothing closed today");
+  const fd = $("feed"); fd.replaceChildren();
+  if (!s.pipeline.feed.length) fd.append(el("li", {class: "empty"}, "no activity today"));
+  for (const x of s.pipeline.feed) fd.append(el("li", {}, el("span", {class: "tm num"}, x.at),
+    el("span", {}, el("span", {class: "tag " + (x.dir === "up" ? "call" : "put")}, x.symbol)),
+    el("span", {class: x.status.startsWith("refused") ? "muted" : ""}, (x.kind === "exit" ? "exit: " : "") + x.status
+      + (x.v2 != null ? `  (v2 ${x.v2}/7)` : ""))));
+  table("feeds", [["Source"], ["What it brings"], ["Used by"], ["Age", 1]],
+    s.feeds.map(f => [el("b", {}, f.name), f.what, el("span", {class: "muted"}, f.used_by),
+      f.age_s == null ? el("span", {class: "muted"}, "no file") : f.age_s < 900 ? status("good", ago(f.age_s)) : status("warn", ago(f.age_s))]));
+  table("models", [["Model"], ["Calls", 1], ["Answered"], ["Median", 1]],
+    s.models.map(m => [m.model, m.calls, m.cooling ? status("crit", "cooling off") : el("div", {class: "bar", title: m.ok_pct + "%"}, el("i", {style: `width:${m.ok_pct || 0}%`})),
+      m.median_s == null ? "-" : m.median_s.toFixed(1) + " s"]), "no model calls recorded");
+  table("lab", [["Strategy"], ["Status"], ["Open", 1], ["Closed", 1], ["Avg", 1]],
+    s.lab.slice(0, 10).map(x => [x.name, x.status === "demoted" ? status("warn", "demoted") : x.status === "graduated" ? status("good", "graduated") : x.status,
+      x.open, x.closed, x.avg == null ? "-" : el("span", {class: x.avg >= 0 ? "up" : "down"}, pct(x.avg))]), "no Lab strategies");
+  table("sched", [["Job"], ["Next"], ["In", 1]],
+    s.schedule.map(j => [el("span", {title: j.purpose}, j.name), j.next || j.schedule, j.in_min == null ? "-" : j.in_min < 60 ? j.in_min + " min" : Math.round(j.in_min / 60) + " h"]));
+}
+async function tick() {
+  try {
+    const r = await fetch(STATE_URL + "?t=" + Date.now(), {cache: "no-store"});
+    if (!r.ok) throw new Error(r.status);
+    const s = await r.json();
+    if (s.pushed_at) s.pushed_age_s = Math.round(Date.now() / 1000 - s.pushed_at);
+    render(s);
+    const stale = s.pushed_age_s > 2400;   // the public copy: two missed 30-minute pushes
+    $("upd").textContent = "snapshot " + Math.max(0, Math.round(s.pushed_age_s / 60)) + " min ago";
+    $("live-dot").className = stale ? "dot" : "dot live";
+  } catch (e) { $("upd").textContent = "waiting for the bot's snapshot"; $("live-dot").className = "dot"; }
+}
+window.addEventListener("resize", () => last && render(last));
+tick(); setInterval(tick, 60000);
+</script>
+</body>
+</html>
